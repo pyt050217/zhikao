@@ -117,6 +117,8 @@ code {
   }
 }
 
+.auth-card { width: 400px; margin: 100px auto; }
+
 .hero {
   position: relative;
 
