@@ -1,0 +1,12 @@
+.env
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+# Vue前端
+node_modules/
+dist/
+# 系统文件
+.DS_Store
+*.log
