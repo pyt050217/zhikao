@@ -19,11 +19,14 @@ api.interceptors.request.use(async (config) => {
   } else if (url.startsWith('/results')) {
     config.adapter = () => Promise.resolve({ data: results })
   } else if (url === '/generate' && config.method === 'post') {
-    // LLM 出题：模拟 800ms 生成延迟，从题库抽取
+    // ⚠️ 必须在拦截器里提前捕获 config.data（对象）。
+    // axios 在拦截器之后会跑 transformRequest，把 config.data 序列化成 JSON 字符串；
+    // 若 adapter 里直接用 config.data，解构出来的 type/difficulty/count 全是 undefined。
+    const payload = typeof config.data === 'string' ? JSON.parse(config.data) : (config.data || {})
     config.adapter = () => new Promise(resolve => {
       setTimeout(() => {
         const store = useQuestionStore()
-        const items = store.generate(config.data || {})
+        const items = store.generate(payload)
         resolve({ data: items })
       }, 800)
     })
