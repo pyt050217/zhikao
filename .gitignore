@@ -10,3 +10,6 @@ dist/
 # 系统文件
 .DS_Store
 *.log
+# 运行时
+*.db
+*.db-journal

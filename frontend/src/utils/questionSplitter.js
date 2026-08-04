@@ -173,3 +173,18 @@ function makeQuestion(raw, index) {
     _importRaw: raw.slice(0, 200) // 保留原始文本供预览
   }
 }
+
+/**
+ * 把 OCR 返回的 LaTeX 回填到题目的 __FORMULA_i__ 占位符。
+ * @param {string} stem 含 __FORMULA_i__ 的题干
+ * @param {string[]} latexList 与 formulas 顺序对应的 LaTeX 字符串数组
+ * @returns {string}
+ */
+export function applyFormulas(stem, latexList) {
+  if (!stem) return stem
+  let result = stem
+  latexList.forEach((latex, i) => {
+    result = result.replace(`__FORMULA_${i}__`, latex || '')
+  })
+  return result
+}

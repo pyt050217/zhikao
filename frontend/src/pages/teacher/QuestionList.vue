@@ -65,9 +65,9 @@
       </el-upload>
 
       <!-- 解析状态 -->
-      <div v-if="parsing" class="parse-status">
+      <div v-if="parsing || ocrRunning" class="parse-status">
         <el-icon class="is-loading"><loading /></el-icon>
-        <span>正在解析文档…</span>
+        <span>{{ ocrRunning ? `正在识别 ${formulaCount} 个公式（调 Claude 视觉）…` : '正在解析文档…' }}</span>
       </div>
 
       <!-- 预览表格 -->
@@ -107,22 +107,23 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { UploadFilled, Loading } from '@element-plus/icons-vue'
 import { useQuestionStore } from '@/stores/question'
-import { importDocument } from '@/api'
+import { ocrFormulas } from '@/api'
+import { parseFile } from '@/utils/fileParser'
+import { splitTextIntoQuestions, applyFormulas } from '@/utils/questionSplitter'
 import MathText from '@/components/MathText.vue'
 
 const store = useQuestionStore()
-
-onMounted(() => { store.loadQuestions() })
 
 const keyword = ref('')
 const typeFilter = ref('')
 const importDialog = ref(false)
 const fileList = ref([])
 const parsing = ref(false)
+const ocrRunning = ref(false)
 const importing = ref(false)
 const parsedQuestions = ref([])
 const ocrTodos = ref([])
@@ -140,28 +141,60 @@ function del(id) {
 async function handleFileChange(file) {
   fileList.value = [file]
   parsing.value = true
+  ocrRunning.value = false
   parsedQuestions.value = []
   ocrTodos.value = []
   formulaCount.value = 0
   try {
-    const formData = new FormData()
-    formData.append('file', file.raw)
-    const { data } = await importDocument(formData)
-    parsedQuestions.value = data.questions || []
-    ocrTodos.value = data.ocr_todos || []
-    formulaCount.value = data.formula_count || 0
-    if (!parsedQuestions.value.length) {
+    // 1. 前端解析文字 + 公式裁图
+    const { text, formulas } = await parseFile(file.raw)
+    formulaCount.value = formulas.length
+
+    // 2. 构建题目（公式位置用占位符）
+    let questions = splitTextIntoQuestions(text)
+
+    if (!questions.length) {
       ElMessage.warning('未能从文档中识别出题目，请检查格式')
-    } else {
-      const todoMsg = ocrTodos.value.length
-        ? `（${ocrTodos.value.length} 个公式待复核）`
-        : ''
-      ElMessage.success(`解析完成，识别出 ${parsedQuestions.value.length} 道题，检测到 ${formulaCount.value} 个公式 ${todoMsg}`)
+      parsing.value = false
+      return
     }
+
+    // 3. 有公式则调边缘函数 OCR
+    if (formulas.length) {
+      ocrRunning.value = true
+      try {
+        const formula_payloads = formulas.map(f => ({
+          image: f.image,
+          context: text.slice(0, 800),  // 前 800 字作为上下文
+        }))
+        const { data } = await ocrFormulas(formula_payloads)
+        const latexList = (data.results || []).map(r => r.latex || '')
+        const todos = (data.results || []).filter(r => r.status === 'TODO' || r.status === 'ERROR')
+        ocrTodos.value = todos.map((r, i) => `公式 ${i + 1}: ${r.status === 'ERROR' ? r.error : '需人工复核'}`)
+        // 回填 LaTeX 到占位符
+        questions = questions.map(q => ({
+          ...q,
+          stem: applyFormulas(q.stem, latexList),
+        }))
+      } catch (ocrErr) {
+        console.warn('公式 OCR 失败（可在预览后手动补充 LaTeX）:', ocrErr)
+        ocrTodos.value = [`公式 OCR 调用失败: ${ocrErr.message}（题干中公式显示为占位符，可手动编辑）`]
+      } finally {
+        ocrRunning.value = false
+      }
+    }
+
+    parsedQuestions.value = questions
+
+    const msg = ocrTodos.value.length
+      ? `识别 ${questions.length} 道题，${formulas.length} 个公式（${ocrTodos.value.length} 个待复核）`
+      : `识别 ${questions.length} 道题${formulas.length ? `，${formulas.length} 个公式已转 LaTeX` : ''}`
+    ElMessage.success(msg)
   } catch (e) {
-    ElMessage.error('解析失败：' + (e.response?.data?.detail || e.message))
+    ElMessage.error('解析失败：' + (e.message || e))
   } finally {
     parsing.value = false
+    ocrRunning.value = false
   }
 }
 

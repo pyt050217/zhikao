@@ -2,20 +2,41 @@ import axios from 'axios'
 
 const api = axios.create({ baseURL: '/api' })
 
-// 真实后端 API（/mock 拦截器已移除，由 FastAPI 后端提供服务）
-export function fetchQuestions()      { return api.get('/questions') }
-export function fetchExams()          { return api.get('/exams') }
-export function fetchResults(examId)  { return api.get(`/results/${examId}`) }
-export function generateQuestions(payload) { return api.post('/generate', payload) }
-
-// 导入文档（PDF/DOCX/TXT → 结构化题目）
-export function importDocument(formData) {
-  return api.post('/import', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-  })
+// ── 题库（localStorage 持久化，静态站点无需后端数据库）──
+export function fetchQuestions() {
+  try {
+    return Promise.resolve({ data: JSON.parse(localStorage.getItem('savedQuestions') || '[]') })
+  } catch {
+    return Promise.resolve({ data: [] })
+  }
 }
 
-// 批量入库
-export function batchCreateQuestions(questions) {
-  return api.post('/questions/batch', { questions })
+export async function batchCreateQuestions(questions) {
+  const existing = JSON.parse(localStorage.getItem('savedQuestions') || '[]')
+  const stems = new Set(existing.map(q => q.stem))
+  let added = 0
+  questions.forEach(q => {
+    if (!stems.has(q.stem)) {
+      existing.push({ ...q, _saved: true })
+      stems.add(q.stem)
+      added++
+    }
+  })
+  localStorage.setItem('savedQuestions', JSON.stringify(existing))
+  return { data: { inserted: added } }
+}
+
+// ── 考试 / 成绩（静态数据）──
+import { exams, results } from '@/mock/data'
+export function fetchExams() { return Promise.resolve({ data: exams }) }
+export function fetchResults(examId) {
+  return Promise.resolve({ data: results.filter(r => r.examId === examId) })
+}
+
+// ── 出题：调 Vercel 边缘函数（从 question-bank.json 抽取）──
+export function generateQuestions(payload) { return api.post('/generate', payload) }
+
+// ── 公式 OCR：调 Vercel 边缘函数（Claude 视觉，API key 藏在服务端）──
+export function ocrFormulas(formulas) {
+  return api.post('/ocr', { formulas })
 }

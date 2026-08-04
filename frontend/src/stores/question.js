@@ -1,34 +1,51 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { fetchQuestions, generateQuestions, batchCreateQuestions } from '@/api'
+import { fetchQuestions, batchCreateQuestions, generateQuestions } from '@/api'
+import questionBank from '@/mock/question-bank.json'
 
 export const useQuestionStore = defineStore('question', () => {
-  // 题库从后端加载
   const questions = ref([])
   const loading = ref(false)
 
   const total = computed(() => questions.value.length)
-  const llmCount = computed(() => questions.value.filter(q => q.source === 'llm').length)
 
   async function loadQuestions() {
     loading.value = true
     try {
       const { data } = await fetchQuestions()
-      questions.value = data
+      questions.value = data || []
     } finally {
       loading.value = false
     }
   }
 
-  // 从后端题库按 type/difficulty 抽取 count 道
-  async function generate({ type, difficulty, count }) {
-    const { data } = await generateQuestions({ type, difficulty, count })
-    return data
+  // 从 question-bank.json 本地按 type/difficulty 抽取（无需后端）
+  // 若部署了 Vercel 边缘函数 /generate，可改为调后端
+  function generateLocal({ type, difficulty, count }) {
+    let pool = questionBank.questions.filter(q => q.type === type)
+    if (difficulty) pool = pool.filter(q => q.difficulty === difficulty)
+    const existing = new Set(questions.value.map(q => q.stem))
+    pool = pool.filter(q => !existing.has(q.stem))
+    const shuffled = [...pool].sort(() => Math.random() - 0.5)
+    return shuffled.slice(0, count).map(q => ({
+      ...q,
+      id: `llm-${Date.now()}-${Math.floor(Math.random() * 1e6)}`,
+      _generated: true,
+    }))
   }
 
-  // 批量入库到后端
+  async function generate(payload) {
+    // 优先调边缘函数；失败则回退到本地题库
+    try {
+      const { data } = await generateQuestions(payload)
+      if (data.questions?.length) return data.questions
+    } catch (e) {
+      console.warn('generate 边缘函数失败，回退本地题库:', e.message)
+    }
+    return generateLocal(payload)
+  }
+
   async function saveToBank(items) {
-    // 去掉前端临时字段
     const rows = items.map(q => ({
       id: q.id,
       type: q.type,
@@ -39,15 +56,16 @@ export const useQuestionStore = defineStore('question', () => {
       source: q.source || 'import',
     }))
     const { data } = await batchCreateQuestions(rows)
-    // 入库后刷新本地列表
-    await loadQuestions()
+    questions.value = JSON.parse(localStorage.getItem('savedQuestions') || '[]')
     return data.inserted ?? rows.length
   }
 
   function removeQuestion(id) {
-    // 本地移除（后端删除接口后续补充）
-    questions.value = questions.value.filter(q => q.id !== id)
+    const all = JSON.parse(localStorage.getItem('savedQuestions') || '[]')
+    const filtered = all.filter(q => q.id !== id)
+    localStorage.setItem('savedQuestions', JSON.stringify(filtered))
+    questions.value = filtered
   }
 
-  return { questions, loading, total, llmCount, loadQuestions, generate, saveToBank, removeQuestion }
+  return { questions, loading, total, loadQuestions, generate, saveToBank, removeQuestion }
 })
