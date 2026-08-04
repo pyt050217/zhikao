@@ -1,7 +1,7 @@
 <template>
   <div class="generate-page">
     <h2>🤖 LLM 出题</h2>
-    <p class="hint">基于 exam-maker 智能体，从 LLM 生成的题库中按题型 / 科目 / 难度智能抽题</p>
+    <p class="hint">基于 exam-maker 智能体，从 LLM 生成的题库中按题型 / 科目 / 难度智能抽题（题干支持 LaTeX 公式渲染）</p>
 
     <el-form :model="form" label-width="90px">
       <el-form-item label="题型">
@@ -46,13 +46,13 @@
           <el-tag size="small" :type="typeTag(q.type)">{{ typeLabel(q.type) }}</el-tag>
           <el-tag size="small" type="info">{{ q.subject }}</el-tag>
           <el-tag size="small" :type="diffTag(q.difficulty)">{{ diffLabel(q.difficulty) }}</el-tag>
-          <strong class="stem">{{ idx + 1 }}. {{ q.stem }}</strong>
+          <span class="stem">{{ idx + 1 }}. <MathText :text="q.stem" /></span>
         </p>
 
         <!-- 选项：单选 / 多选 / 判断 -->
         <ul v-if="q.options && q.options.length" class="options">
           <li v-for="(opt, i) in q.options" :key="i" :class="{ correct: isCorrect(q, i) }">
-            {{ String.fromCharCode(65 + i) }}. {{ opt }}
+            {{ String.fromCharCode(65 + i) }}. <MathText :text="opt" />
             <el-tag v-if="isCorrect(q, i)" size="small" type="success">正确答案</el-tag>
           </li>
         </ul>
@@ -60,7 +60,7 @@
         <!-- 填空 / 简答：直接显示答案 -->
         <p v-else class="answer-line">
           <el-tag type="success" size="small">参考答案</el-tag>
-          {{ q.answer }}
+          <MathText :text="String(q.answer)" />
         </p>
       </div>
 
@@ -79,6 +79,7 @@ import { reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import { generateQuestions } from '@/api'
 import { useQuestionStore } from '@/stores/question'
+import MathText from '@/components/MathText.vue'
 
 const store = useQuestionStore()
 

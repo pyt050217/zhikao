@@ -25,7 +25,11 @@
           <el-tag size="small">{{ { single: '单选', multiple: '多选', judge: '判断', blank: '填空', essay: '简答' }[row.type] }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="stem" label="题干" show-overflow-tooltip />
+      <el-table-column label="题干" show-overflow-tooltip>
+        <template #default="{ row }">
+          <MathText :text="row.stem" />
+        </template>
+      </el-table-column>
       <el-table-column prop="source" label="来源" width="80">
         <template #default="{ row }">
           <el-tag size="small" :type="row.source === 'import' ? 'success' : (row.source === 'llm' ? 'warning' : 'info')">
@@ -76,7 +80,11 @@
               <el-tag size="small">{{ { single: '单选', multiple: '多选', judge: '判断', blank: '填空', essay: '简答' }[row.type] }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="stem" label="题干" show-overflow-tooltip />
+          <el-table-column label="题干" show-overflow-tooltip>
+            <template #default="{ row }">
+              <MathText :text="row.stem" />
+            </template>
+          </el-table-column>
         </el-table>
         <p class="parse-hint">
           ⚠️ 当前为 mock 结构化（按题号切分 + 启发式判题型）。如需更精准的 LLM 结构化，后续可接入 exam-maker 智能体。
@@ -100,6 +108,7 @@ import { UploadFilled, Loading } from '@element-plus/icons-vue'
 import { useQuestionStore } from '@/stores/question'
 import { parseFile } from '@/utils/fileParser'
 import { splitTextIntoQuestions } from '@/utils/questionSplitter'
+import MathText from '@/components/MathText.vue'
 
 const store = useQuestionStore()
 
