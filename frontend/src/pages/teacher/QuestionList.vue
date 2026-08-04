@@ -72,7 +72,15 @@
 
       <!-- 预览表格 -->
       <div v-if="parsedQuestions.length" class="preview-section">
-        <h4>解析结果预览（共 {{ parsedQuestions.length }} 道题）</h4>
+        <h4>解析结果预览（共 {{ parsedQuestions.length }} 道题，检测到 {{ formulaCount }} 个公式）</h4>
+        <el-alert
+          v-if="ocrTodos.length"
+          :title="`有 ${ocrTodos.length} 个公式识别存疑，请入库后人工复核题干中的 $...$ 部分`"
+          type="warning"
+          show-icon
+          :closable="false"
+          class="ocr-alert"
+        />
         <el-table :data="parsedQuestions" stripe max-height="300">
           <el-table-column type="index" label="#" width="50" />
           <el-table-column prop="type" label="题型" width="80">
@@ -80,15 +88,12 @@
               <el-tag size="small">{{ { single: '单选', multiple: '多选', judge: '判断', blank: '填空', essay: '简答' }[row.type] }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="题干" show-overflow-tooltip>
+          <el-table-column label="题干">
             <template #default="{ row }">
               <MathText :text="row.stem" />
             </template>
           </el-table-column>
         </el-table>
-        <p class="parse-hint">
-          ⚠️ 当前为 mock 结构化（按题号切分 + 启发式判题型）。如需更精准的 LLM 结构化，后续可接入 exam-maker 智能体。
-        </p>
       </div>
 
       <template #footer>
@@ -102,15 +107,16 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import { UploadFilled, Loading } from '@element-plus/icons-vue'
 import { useQuestionStore } from '@/stores/question'
-import { parseFile } from '@/utils/fileParser'
-import { splitTextIntoQuestions } from '@/utils/questionSplitter'
+import { importDocument } from '@/api'
 import MathText from '@/components/MathText.vue'
 
 const store = useQuestionStore()
+
+onMounted(() => { store.loadQuestions() })
 
 const keyword = ref('')
 const typeFilter = ref('')
@@ -119,6 +125,8 @@ const fileList = ref([])
 const parsing = ref(false)
 const importing = ref(false)
 const parsedQuestions = ref([])
+const ocrTodos = ref([])
+const formulaCount = ref(0)
 
 const filtered = computed(() => store.questions.filter(q =>
   (!keyword.value || q.stem.includes(keyword.value)) &&
@@ -133,16 +141,25 @@ async function handleFileChange(file) {
   fileList.value = [file]
   parsing.value = true
   parsedQuestions.value = []
+  ocrTodos.value = []
+  formulaCount.value = 0
   try {
-    const text = await parseFile(file.raw)
-    parsedQuestions.value = splitTextIntoQuestions(text)
+    const formData = new FormData()
+    formData.append('file', file.raw)
+    const { data } = await importDocument(formData)
+    parsedQuestions.value = data.questions || []
+    ocrTodos.value = data.ocr_todos || []
+    formulaCount.value = data.formula_count || 0
     if (!parsedQuestions.value.length) {
       ElMessage.warning('未能从文档中识别出题目，请检查格式')
     } else {
-      ElMessage.success(`解析完成，识别出 ${parsedQuestions.value.length} 道题`)
+      const todoMsg = ocrTodos.value.length
+        ? `（${ocrTodos.value.length} 个公式待复核）`
+        : ''
+      ElMessage.success(`解析完成，识别出 ${parsedQuestions.value.length} 道题，检测到 ${formulaCount.value} 个公式 ${todoMsg}`)
     }
   } catch (e) {
-    ElMessage.error('解析失败：' + e.message)
+    ElMessage.error('解析失败：' + (e.response?.data?.detail || e.message))
   } finally {
     parsing.value = false
   }
@@ -151,15 +168,22 @@ async function handleFileChange(file) {
 function resetParse() {
   fileList.value = []
   parsedQuestions.value = []
+  ocrTodos.value = []
+  formulaCount.value = 0
 }
 
-function confirmImport() {
+async function confirmImport() {
   importing.value = true
-  const added = store.saveToBank(parsedQuestions.value)
-  importing.value = false
-  ElMessage.success(`已入库 ${added} 道新题目`)
-  importDialog.value = false
-  resetParse()
+  try {
+    const added = await store.saveToBank(parsedQuestions.value)
+    ElMessage.success(`已入库 ${added} 道新题目`)
+    importDialog.value = false
+    resetParse()
+  } catch (e) {
+    ElMessage.error('入库失败：' + (e.response?.data?.detail || e.message))
+  } finally {
+    importing.value = false
+  }
 }
 </script>
 
@@ -167,5 +191,5 @@ function confirmImport() {
 .parse-status { margin-top: 16px; display: flex; align-items: center; gap: 8px; color: #409eff; }
 .preview-section { margin-top: 16px; }
 .preview-section h4 { margin-bottom: 8px; }
-.parse-hint { margin-top: 8px; font-size: 12px; color: #e6a23c; }
+.ocr-alert { margin-bottom: 12px; }
 </style>
