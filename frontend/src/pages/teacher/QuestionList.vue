@@ -36,18 +36,19 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { questions as mockData } from '@/mock/data'
+import { useQuestionStore } from '@/stores/question'
+
+const store = useQuestionStore()
 
 const keyword = ref('')
 const typeFilter = ref('')
-const questions = ref(mockData)
 
-const filtered = computed(() => questions.value.filter(q =>
+const filtered = computed(() => store.questions.filter(q =>
   (!keyword.value || q.stem.includes(keyword.value)) &&
   (!typeFilter.value || q.type === typeFilter.value)
 ))
 
 function del(id) {
-  questions.value = questions.value.filter(q => q.id !== id)
+  store.removeQuestion(id)
 }
 </script>
