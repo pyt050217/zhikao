@@ -3,7 +3,6 @@
     <h2>📋 我的考试</h2>
     <el-table :data="exams" stripe>
       <el-table-column prop="title" label="考试名称" />
-      <el-table-column prop="subject" label="科目" width="100" />
       <el-table-column prop="duration" label="时长(分钟)" width="100" />
       <el-table-column label="操作" width="200">
         <template #default="{ row }">

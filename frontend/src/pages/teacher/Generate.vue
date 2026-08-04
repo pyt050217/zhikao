@@ -1,7 +1,7 @@
 <template>
   <div class="generate-page">
     <h2>🤖 LLM 出题</h2>
-    <p class="hint">基于 exam-maker 智能体，从 LLM 生成的题库中按题型 / 科目 / 难度智能抽题（题干支持 LaTeX 公式渲染）</p>
+    <p class="hint">基于 exam-maker 智能体，从 LLM 生成的题库中按题型 / 难度智能抽题（题干支持 LaTeX 公式渲染）</p>
 
     <el-form :model="form" label-width="90px">
       <el-form-item label="题型">
@@ -11,11 +11,6 @@
           <el-option label="判断题" value="judge" />
           <el-option label="填空题" value="blank" />
           <el-option label="简答题" value="essay" />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="科目">
-        <el-select v-model="form.subject" clearable placeholder="不限">
-          <el-option v-for="s in subjects" :key="s" :label="s" :value="s" />
         </el-select>
       </el-form-item>
       <el-form-item label="难度">
@@ -44,7 +39,6 @@
       <div v-for="(q, idx) in generated" :key="q.id" class="generated-item">
         <p class="q-header">
           <el-tag size="small" :type="typeTag(q.type)">{{ typeLabel(q.type) }}</el-tag>
-          <el-tag size="small" type="info">{{ q.subject }}</el-tag>
           <el-tag size="small" :type="diffTag(q.difficulty)">{{ diffLabel(q.difficulty) }}</el-tag>
           <span class="stem">{{ idx + 1 }}. <MathText :text="q.stem" /></span>
         </p>
@@ -83,11 +77,10 @@ import MathText from '@/components/MathText.vue'
 
 const store = useQuestionStore()
 
-const subjects = ['数学', '语文', '英语', '物理', '化学', '生物', '历史']
 const typeMap = { single: '单选', multiple: '多选', judge: '判断', blank: '填空', essay: '简答' }
 const diffMap = { easy: '简单', medium: '中等', hard: '困难' }
 
-const form = reactive({ type: 'single', subject: '', difficulty: '', count: 3 })
+const form = reactive({ type: 'single', difficulty: '', count: 3 })
 const generating = ref(false)
 const generated = ref([])
 
@@ -107,7 +100,6 @@ async function generate() {
   try {
     const { data } = await generateQuestions({
       type: form.type,
-      subject: form.subject,
       difficulty: form.difficulty,
       count: form.count
     })

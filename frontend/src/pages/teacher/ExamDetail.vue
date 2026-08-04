@@ -2,7 +2,6 @@
   <div class="exam-detail">
     <h2>{{ exam.title }}</h2>
     <el-descriptions :column="2" border>
-      <el-descriptions-item label="科目">{{ exam.subject }}</el-descriptions-item>
       <el-descriptions-item label="时长">{{ exam.duration }} 分钟</el-descriptions-item>
       <el-descriptions-item label="总分">{{ exam.totalScore }}</el-descriptions-item>
       <el-descriptions-item label="状态">

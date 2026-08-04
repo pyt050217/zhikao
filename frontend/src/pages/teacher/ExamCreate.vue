@@ -5,9 +5,6 @@
       <el-form-item label="试卷名称">
         <el-input v-model="form.title" />
       </el-form-item>
-      <el-form-item label="科目">
-        <el-input v-model="form.subject" />
-      </el-form-item>
       <el-form-item label="考试时长(分钟)">
         <el-input-number v-model="form.duration" :min="1" :max="300" />
       </el-form-item>
@@ -42,7 +39,7 @@ import { questions as mockQuestions } from '@/mock/data'
 
 const questions = ref(mockQuestions)
 const selectedIds = ref([])
-const form = reactive({ title: '', subject: '', duration: 60 })
+const form = reactive({ title: '', duration: 60 })
 
 function createExam() {
   ElMessage.success(`试卷 "${form.title}" 创建成功 (mock)`)

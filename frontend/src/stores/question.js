@@ -23,10 +23,9 @@ export const useQuestionStore = defineStore('question', () => {
     localStorage.setItem('savedQuestions', JSON.stringify(saved))
   }
 
-  // 从 LLM 题库中按 type / subject / difficulty 抽取 count 道
-  function generate({ type, subject, difficulty, count }) {
+  // 从 LLM 题库中按 type / difficulty 抽取 count 道
+  function generate({ type, difficulty, count }) {
     let pool = questionBank.questions.filter(q => q.type === type)
-    if (subject) pool = pool.filter(q => q.subject === subject)
     if (difficulty) pool = pool.filter(q => q.difficulty === difficulty)
 
     // 过滤掉已存在于题库中的（按 stem 去重）

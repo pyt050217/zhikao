@@ -4,7 +4,6 @@
     <el-button type="primary" @click="$router.push('/teacher/exams/create')">组卷</el-button>
     <el-table :data="exams" stripe class="table">
       <el-table-column prop="title" label="名称" />
-      <el-table-column prop="subject" label="科目" width="100" />
       <el-table-column prop="duration" label="时长(分钟)" width="100" />
       <el-table-column prop="status" label="状态" width="100">
         <template #default="{ row }">
