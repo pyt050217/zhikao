@@ -36,7 +36,10 @@ function renderSegments(text) {
       parts.push(escapeHtml(text.slice(lastIndex, match.index)))
     }
     const math = match[1] ?? match[2] ?? match[3] ?? match[4]
-    const displayMode = !!match[1] || !!match[2]
+    // $$...$$ / \[...\] → 显示模式；$...$ / \(...\) → 行内模式
+    // 但行内公式若含换行（如多行矩阵）也自动切显示模式，避免布局错乱
+    let displayMode = !!match[1] || !!match[2]
+    if (!displayMode && /\n/.test(math)) displayMode = true
     try {
       parts.push(
         katex.renderToString(math.trim(), { displayMode, throwOnError: false })

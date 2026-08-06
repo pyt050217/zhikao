@@ -36,14 +36,14 @@ export const useQuestionStore = defineStore('question', () => {
   }
 
   async function generate(payload) {
-    // 有学科参数时调 LLM 边缘函数；否则回退本地题库
+    // 有学科参数时调 LLM 边缘函数；失败则回退本地题库
     if (payload.subject) {
       try {
         const { data } = await generateQuestions(payload)
         if (data.questions?.length) return data.questions
       } catch (e) {
-        console.warn('LLM 生成失败:', e.message)
-        throw e  // LLM 失败时抛出错误，让前端显示提示，不再回退本地题库
+        console.warn('LLM 生成失败，回退本地题库:', e.message)
+        // 静态托管（如 GitHub Pages）无后端时，回退到本地题库抽取
       }
     }
     return generateLocal(payload)
