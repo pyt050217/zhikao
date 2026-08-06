@@ -5,6 +5,8 @@ import { fileURLToPath, URL } from 'node:url'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue()],
+  // GitHub Pages 部署在 https://用户名.github.io/zhikao/ 子路径下
+  base: process.env.GITHUB_PAGES === 'true' ? '/zhikao/' : '/',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
