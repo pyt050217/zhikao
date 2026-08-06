@@ -7,7 +7,7 @@
       <el-table-column label="操作" width="280">
         <template #default="{ row }">
           <el-button type="primary" size="small" @click="$router.push(`/student/exam/${row.id}`)">在线答题</el-button>
-          <el-button size="small" @click="$router.push(`/student/exam/${row.id}/upload`)">📷 拍照上传</el-button>
+          <el-button size="small" @click="$router.push(`/student/exam/${row.id}/upload`)">📷 拍照/PDF</el-button>
         </template>
       </el-table-column>
     </el-table>
