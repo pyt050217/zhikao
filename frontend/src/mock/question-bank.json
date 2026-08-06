@@ -44,7 +44,7 @@
     },
     {
       "id": "la-3", "subject": "linear_algebra", "topic": "determinant",
-      "type": "single", "difficulty": "easy",
+      "difficulty": "easy",
       "stem": "行列式 $\\begin{vmatrix}1&2\\\\3&4\\end{vmatrix} = $ ____。",
       "answer": "$-2$", "type": "blank", "source": "bank"
     },
@@ -119,7 +119,7 @@
     },
     {
       "id": "cal-2", "subject": "calculus", "topic": "limit",
-      "type": "single", "difficulty": "medium",
+      "difficulty": "medium",
       "stem": "$\\lim_{x \\to 0} \\frac{e^x - 1}{x} = $ ____。",
       "answer": "$1$", "type": "blank", "source": "bank"
     },

@@ -19,14 +19,34 @@ export const useQuestionStore = defineStore('question', () => {
     }
   }
 
-  // 从 question-bank.json 本地按 subject/type/difficulty 抽取
+  // 从 question-bank.json 本地按 subject/type/difficulty 抽取（不重复）
   function generateLocal({ subject, type, difficulty, count }) {
-    let pool = questionBank.questions.filter(q => q.type === type)
-    // 按学科筛选（如果有 subject 字段）
-    if (subject) pool = pool.filter(q => q.subject === subject)
-    if (difficulty) pool = pool.filter(q => q.difficulty === difficulty)
     const existing = new Set(questions.value.map(q => q.stem))
-    pool = pool.filter(q => !existing.has(q.stem))
+
+    // 严格筛选：题型 + 学科 + 难度，且未在题库中
+    let pool = questionBank.questions
+      .filter(q => q.type === type)
+      .filter(q => !subject || q.subject === subject)
+      .filter(q => !difficulty || q.difficulty === difficulty)
+      .filter(q => !existing.has(q.stem))
+
+    // 严格匹配无结果 → 放宽难度
+    if (pool.length === 0) {
+      pool = questionBank.questions
+        .filter(q => q.type === type)
+        .filter(q => !subject || q.subject === subject)
+        .filter(q => !existing.has(q.stem))
+    }
+
+    // 仍无结果 → 仅按学科
+    if (pool.length === 0 && subject) {
+      pool = questionBank.questions
+        .filter(q => q.subject === subject)
+        .filter(q => !existing.has(q.stem))
+    }
+
+    if (pool.length === 0) return []
+
     const shuffled = [...pool].sort(() => Math.random() - 0.5)
     return shuffled.slice(0, count).map(q => ({
       ...q,

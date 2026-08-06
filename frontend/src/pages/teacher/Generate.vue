@@ -155,10 +155,12 @@ async function generate() {
       count: form.count
     })
     generated.value = items
-    if (items.length < form.count) {
-      ElMessage.warning(`仅生成 ${items.length} 道题目`)
+    if (items.length === 0) {
+      ElMessage.warning('没有可用的新题目。可能原因：1) 无后端 API（GitHub Pages 不支持 LLM）；2) 该筛选条件下的题目已全部在题库中。请尝试减少筛选条件或先删除题库中的部分题目。')
+    } else if (items.length < form.count) {
+      ElMessage.warning(`仅生成 ${items.length} 道题目（题库中剩余新题不足）`)
     } else {
-      ElMessage.success(`LLM 已生成 ${items.length} 道${subjects[subject.value].label}题目`)
+      ElMessage.success(`已生成 ${items.length} 道${subjects[subject.value].label}题目`)
     }
   } catch (e) {
     ElMessage.error('生成失败：' + e.message)
