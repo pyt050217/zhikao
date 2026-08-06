@@ -2,7 +2,13 @@
   <div class="question-list">
     <h2>题库</h2>
     <el-row :gutter="16" class="toolbar">
-      <el-col :span="6"><el-input v-model="keyword" placeholder="搜索题目" clearable /></el-col>
+      <el-col :span="4">
+        <el-select v-model="subjectFilter" placeholder="学科" clearable>
+          <el-option label="线性代数" value="linear_algebra" />
+          <el-option label="微积分" value="calculus" />
+        </el-select>
+      </el-col>
+      <el-col :span="5"><el-input v-model="keyword" placeholder="搜索题目" clearable /></el-col>
       <el-col :span="4">
         <el-select v-model="typeFilter" placeholder="题型筛选" clearable>
           <el-option label="单选题" value="single" />
@@ -12,7 +18,7 @@
           <el-option label="简答题" value="essay" />
         </el-select>
       </el-col>
-      <el-col :span="8">
+      <el-col :span="7">
         <el-button type="primary" @click="$router.push('/teacher/questions/create')">手动建题</el-button>
         <el-button type="success" @click="importDialog = true">📄 导入文档</el-button>
       </el-col>
@@ -67,12 +73,22 @@
       <!-- 解析状态 -->
       <div v-if="parsing || ocrRunning" class="parse-status">
         <el-icon class="is-loading"><loading /></el-icon>
-        <span>{{ ocrRunning ? `正在识别 ${formulaCount} 个公式（调 Claude 视觉）…` : '正在解析文档…' }}</span>
+        <span>{{ ocrRunning ? `正在识别 ${formulaCount} 个公式（Pix2tex 本地推理）…` : '正在解析文档…' }}</span>
       </div>
 
       <!-- 预览表格 -->
       <div v-if="parsedQuestions.length" class="preview-section">
         <h4>解析结果预览（共 {{ parsedQuestions.length }} 道题，检测到 {{ formulaCount }} 个公式）</h4>
+
+        <!-- 学科选择 -->
+        <div class="subject-select-row">
+          <span class="label">存入学科：</span>
+          <el-radio-group v-model="importSubject" size="small">
+            <el-radio-button value="linear_algebra">线性代数</el-radio-button>
+            <el-radio-button value="calculus">微积分</el-radio-button>
+          </el-radio-group>
+        </div>
+
         <el-alert
           v-if="ocrTodos.length"
           :title="`有 ${ocrTodos.length} 个公式识别存疑，请入库后人工复核题干中的 $...$ 部分`"
@@ -111,16 +127,18 @@ import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { UploadFilled, Loading } from '@element-plus/icons-vue'
 import { useQuestionStore } from '@/stores/question'
-import { ocrFormulas } from '@/api'
+import { ocrFormulas, ocrFormulasPix2tex } from '@/api'
 import { parseFile } from '@/utils/fileParser'
 import { splitTextIntoQuestions, applyFormulas } from '@/utils/questionSplitter'
 import MathText from '@/components/MathText.vue'
 
 const store = useQuestionStore()
 
+const subjectFilter = ref('')
 const keyword = ref('')
 const typeFilter = ref('')
 const importDialog = ref(false)
+const importSubject = ref('linear_algebra')
 const fileList = ref([])
 const parsing = ref(false)
 const ocrRunning = ref(false)
@@ -130,6 +148,7 @@ const ocrTodos = ref([])
 const formulaCount = ref(0)
 
 const filtered = computed(() => store.questions.filter(q =>
+  (!subjectFilter.value || q.subject === subjectFilter.value) &&
   (!keyword.value || q.stem.includes(keyword.value)) &&
   (!typeFilter.value || q.type === typeFilter.value)
 ))
@@ -159,17 +178,40 @@ async function handleFileChange(file) {
       return
     }
 
-    // 3. 有公式则调边缘函数 OCR
+    // 3. 有公式则调 OCR（Pix2tex 优先，失败降级 Claude）
     if (formulas.length) {
       ocrRunning.value = true
+      const formula_payloads = formulas.map(f => ({
+        image: f.image,
+        context: text.slice(0, 800),  // 前 800 字作为上下文
+      }))
       try {
-        const formula_payloads = formulas.map(f => ({
-          image: f.image,
-          context: text.slice(0, 800),  // 前 800 字作为上下文
-        }))
-        const { data } = await ocrFormulas(formula_payloads)
-        const latexList = (data.results || []).map(r => r.latex || '')
-        const todos = (data.results || []).filter(r => r.status === 'TODO' || r.status === 'ERROR')
+        let ocrResult = null
+        let usedEngine = 'pix2tex'
+
+        // 优先调用 Pix2tex（本地推理，免费）
+        try {
+          const { data } = await ocrFormulasPix2tex(formula_payloads)
+          if (data.results?.length) {
+            const errors = data.results.filter(r => r.status === 'ERROR')
+            // 全部失败则视为 Pix2tex 不可用，降级 Claude
+            if (errors.length < data.results.length) {
+              ocrResult = data
+            }
+          }
+        } catch (pix2texErr) {
+          console.warn('Pix2tex 不可用，降级到 Claude:', pix2texErr)
+        }
+
+        // 降级：调用 Claude 视觉
+        if (!ocrResult) {
+          usedEngine = 'claude'
+          const { data } = await ocrFormulas(formula_payloads)
+          ocrResult = data
+        }
+
+        const latexList = (ocrResult.results || []).map(r => r.latex || '')
+        const todos = (ocrResult.results || []).filter(r => r.status === 'TODO' || r.status === 'ERROR')
         ocrTodos.value = todos.map((r, i) => `公式 ${i + 1}: ${r.status === 'ERROR' ? r.error : '需人工复核'}`)
         // 回填 LaTeX 到占位符
         questions = questions.map(q => ({
@@ -203,12 +245,18 @@ function resetParse() {
   parsedQuestions.value = []
   ocrTodos.value = []
   formulaCount.value = 0
+  importSubject.value = 'linear_algebra'
 }
 
 async function confirmImport() {
   importing.value = true
   try {
-    const added = await store.saveToBank(parsedQuestions.value)
+    // 将选择的学科写入每道题
+    const questionsWithSubject = parsedQuestions.value.map(q => ({
+      ...q,
+      subject: importSubject.value,
+    }))
+    const added = await store.saveToBank(questionsWithSubject)
     ElMessage.success(`已入库 ${added} 道新题目`)
     importDialog.value = false
     resetParse()
@@ -224,5 +272,7 @@ async function confirmImport() {
 .parse-status { margin-top: 16px; display: flex; align-items: center; gap: 8px; color: #409eff; }
 .preview-section { margin-top: 16px; }
 .preview-section h4 { margin-bottom: 8px; }
+.subject-select-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.subject-select-row .label { color: #606266; font-size: 14px; }
 .ocr-alert { margin-bottom: 12px; }
 </style>

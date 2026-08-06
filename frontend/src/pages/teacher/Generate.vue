@@ -1,9 +1,25 @@
 <template>
   <div class="generate-page">
     <h2>🤖 LLM 出题</h2>
-    <p class="hint">基于 exam-maker 智能体，从 LLM 生成的题库中按题型 / 难度智能抽题（题干支持 LaTeX 公式渲染）</p>
+    <p class="hint">调用 Claude 大模型智能生成数学题目（支持 LaTeX 公式渲染）</p>
+
+    <!-- 学科切换 -->
+    <el-radio-group v-model="subject" class="subject-tabs">
+      <el-radio-button value="linear_algebra">线性代数</el-radio-button>
+      <el-radio-button value="calculus">微积分</el-radio-button>
+    </el-radio-group>
 
     <el-form :model="form" label-width="90px">
+      <el-form-item label="专题">
+        <el-select v-model="form.topic" clearable placeholder="综合（随机）">
+          <el-option
+            v-for="t in currentTopics"
+            :key="t.key"
+            :label="t.label"
+            :value="t.key"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="题型">
         <el-select v-model="form.type">
           <el-option label="单选题" value="single" />
@@ -22,7 +38,7 @@
         </el-radio-group>
       </el-form-item>
       <el-form-item label="数量">
-        <el-input-number v-model="form.count" :min="1" :max="10" />
+        <el-input-number v-model="form.count" :min="1" :max="5" />
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="generate" :loading="generating">
@@ -56,6 +72,12 @@
           <el-tag type="success" size="small">参考答案</el-tag>
           <MathText :text="String(q.answer)" />
         </p>
+
+        <!-- 解析（如有） -->
+        <p v-if="q._explanation" class="explanation">
+          <el-tag size="small" type="info">解析</el-tag>
+          <MathText :text="q._explanation" />
+        </p>
       </div>
 
       <div class="actions">
@@ -64,14 +86,13 @@
       </div>
     </div>
 
-    <el-empty v-else description="点击「生成题目」开始 LLM 出题" />
+    <el-empty v-else description="选择学科和参数，点击「生成题目」开始 LLM 出题" />
   </div>
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { generateQuestions } from '@/api'
 import { useQuestionStore } from '@/stores/question'
 import MathText from '@/components/MathText.vue'
 
@@ -80,7 +101,36 @@ const store = useQuestionStore()
 const typeMap = { single: '单选', multiple: '多选', judge: '判断', blank: '填空', essay: '简答' }
 const diffMap = { easy: '简单', medium: '中等', hard: '困难' }
 
-const form = reactive({ type: 'single', difficulty: '', count: 3 })
+// 学科配置（与后端 api/generate.py 的 SUBJECTS 一致）
+const subjects = {
+  linear_algebra: {
+    label: '线性代数',
+    topics: [
+      { key: 'matrix', label: '矩阵运算' },
+      { key: 'determinant', label: '行列式' },
+      { key: 'vector_space', label: '向量空间' },
+      { key: 'linear_transform', label: '线性变换' },
+      { key: 'eigenvalue', label: '特征值与特征向量' },
+      { key: 'linear_system', label: '线性方程组' },
+    ],
+  },
+  calculus: {
+    label: '微积分',
+    topics: [
+      { key: 'limit', label: '极限与连续' },
+      { key: 'derivative', label: '导数与微分' },
+      { key: 'integral', label: '不定积分与定积分' },
+      { key: 'series', label: '级数' },
+      { key: 'multivar', label: '多元函数微分' },
+      { key: 'ode', label: '常微分方程' },
+    ],
+  },
+}
+
+const subject = ref('linear_algebra')
+const currentTopics = computed(() => subjects[subject.value]?.topics || [])
+
+const form = reactive({ topic: '', type: 'single', difficulty: 'medium', count: 3 })
 const generating = ref(false)
 const generated = ref([])
 
@@ -89,7 +139,6 @@ function diffLabel(d)  { return diffMap[d] || d }
 function typeTag(t)    { return t === 'essay' ? 'warning' : (t === 'judge' ? 'info' : '') }
 function diffTag(d)    { return d === 'easy' ? 'success' : d === 'hard' ? 'danger' : 'warning' }
 
-// 判断第 i 个选项是否为正确答案
 function isCorrect(q, i) {
   if (Array.isArray(q.answer)) return q.answer.includes(i)
   return q.answer === i
@@ -98,16 +147,18 @@ function isCorrect(q, i) {
 async function generate() {
   generating.value = true
   try {
-    const { data } = await generateQuestions({
+    const items = await store.generate({
+      subject: subject.value,
+      topic: form.topic,
       type: form.type,
       difficulty: form.difficulty,
       count: form.count
     })
-    generated.value = data
-    if (data.length < form.count) {
-      ElMessage.warning(`题库中符合条件的题目仅有 ${data.length} 道（已去重）`)
+    generated.value = items
+    if (items.length < form.count) {
+      ElMessage.warning(`仅生成 ${items.length} 道题目`)
     } else {
-      ElMessage.success(`LLM 已生成 ${data.length} 道题目`)
+      ElMessage.success(`LLM 已生成 ${items.length} 道${subjects[subject.value].label}题目`)
     }
   } catch (e) {
     ElMessage.error('生成失败：' + e.message)
@@ -126,6 +177,7 @@ function saveAll() {
 <style scoped>
 .generate-page { max-width: 800px; }
 .hint { color: #909399; font-size: 13px; margin-top: -8px; }
+.subject-tabs { margin-bottom: 16px; }
 .generated-item { padding: 14px; margin: 10px 0; background: #f5f7fa; border-radius: 6px; }
 .q-header { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .q-header .stem { margin-left: 4px; }
@@ -133,5 +185,6 @@ function saveAll() {
 .options li { padding: 4px 8px; margin: 2px 0; border-radius: 4px; }
 .options li.correct { background: #f0f9eb; color: #67c23a; font-weight: 500; }
 .answer-line { padding: 6px 0; color: #67c23a; }
+.explanation { padding: 4px 0; color: #909399; font-size: 13px; }
 .actions { margin-top: 16px; display: flex; gap: 8px; }
 </style>

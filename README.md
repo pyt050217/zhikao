@@ -4,7 +4,7 @@
 
 ## 功能
 
-- 🤖 LLM 出题（按题型/难度从题库抽取）
+- 🤖 LLM 智能出题（Claude 生成线性代数/微积分题目，支持 LaTeX 公式）
 - 📄 导入往届试卷（PDF / DOCX / TXT）
   - 前端 pdfjs 提取文字 + 检测公式区域
   - 公式图片 → Claude 视觉 API → LaTeX（KaTeX 渲染）
@@ -63,7 +63,7 @@ frontend/                 # Vue 3 SPA（静态构建到 dist/）
     stores/question.js    # Pinia 题库 store
 api/                      # Vercel Serverless Functions（Python）
   ocr.py                  # 公式图 → LaTeX（Claude 视觉）
-  generate.py             # 从 question-bank.json 抽题
+  generate.py             # LLM 智能出题（Claude: 线性代数/微积分）
   requirements.txt        # anthropic SDK
 vercel.json               # 路由 + 构建设定
 ```

@@ -11,7 +11,7 @@
 
     <h3>题目列表</h3>
     <div v-for="q in examQuestions" :key="q.id" class="question-item">
-      <p><el-tag size="small">{{ q.type }}</el-tag> {{ q.stem }}</p>
+      <p><el-tag size="small">{{ q.type }}</el-tag> <MathText :text="q.stem" /></p>
     </div>
 
     <h3>作答学生</h3>
@@ -27,6 +27,7 @@
 import { ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { exams, questions, results } from '@/mock/data'
+import MathText from '@/components/MathText.vue'
 
 const route = useRoute()
 const exam = ref(exams.find(e => e.id === Number(route.params.id)) || exams[0])

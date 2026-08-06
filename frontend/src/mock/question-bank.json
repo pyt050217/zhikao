@@ -1,158 +1,216 @@
 {
   "meta": {
-    "description": "LLM 生成的题库样本，按 type / difficulty 索引，供 Generate 页模拟出题时抽取。",
-    "generatedBy": "exam-maker LLM",
-    "version": 1
+    "description": "题库，按 subject → topic 索引，供本地抽取和 LLM few-shot 示例。",
+    "version": 2
+  },
+  "subjects": {
+    "linear_algebra": {
+      "label": "线性代数",
+      "topics": {
+        "matrix": { "label": "矩阵运算" },
+        "determinant": { "label": "行列式" },
+        "vector_space": { "label": "向量空间" },
+        "linear_transform": { "label": "线性变换" },
+        "eigenvalue": { "label": "特征值与特征向量" },
+        "linear_system": { "label": "线性方程组" }
+      }
+    },
+    "calculus": {
+      "label": "微积分",
+      "topics": {
+        "limit": { "label": "极限与连续" },
+        "derivative": { "label": "导数与微分" },
+        "integral": { "label": "不定积分与定积分" },
+        "series": { "label": "级数" },
+        "multivar": { "label": "多元函数微分" },
+        "ode": { "label": "常微分方程" }
+      }
+    }
   },
   "questions": [
-    { "id": "llm-1", "type": "single", "difficulty": "easy", "stem": "一元二次方程 $x^2 - 5x + 6 = 0$ 的根是？", "options": ["$x = 1$ 或 $x = 6$", "$x = 2$ 或 $x = 3$", "$x = -2$ 或 $x = -3$", "$x = -1$ 或 $x = -6$"], "answer": 1, "source": "llm" },
-    { "id": "llm-2", "type": "single", "difficulty": "easy", "stem": "若 $f(x) = 2x + 3$，则 $f(4)$ 的值为？", "options": ["$9$", "$10$", "$11$", "$12$"], "answer": 2, "source": "llm" },
-    { "id": "llm-3", "type": "single", "difficulty": "easy", "stem": "等差数列 $2, 5, 8, 11, \\ldots$ 的第 $6$ 项是？", "options": ["$14$", "$15$", "$17$", "$20$"], "answer": 2, "source": "llm" },
-    { "id": "llm-4", "type": "single", "difficulty": "medium", "stem": "若 $\\log_2(x) + \\log_2(x - 2) = 3$，则 $x$ 的值为？", "options": ["$2$", "$4$", "$6$", "$8$"], "answer": 1, "source": "llm" },
-    { "id": "llm-5", "type": "single", "difficulty": "medium", "stem": "抛掷一枚均匀骰子，出现偶数点或大于 $4$ 的点的概率是？", "options": ["$\\frac{1}{2}$", "$\\frac{2}{3}$", "$\\frac{5}{6}$", "$\\frac{1}{3}$"], "answer": 1, "source": "llm" },
-    { "id": "llm-6", "type": "single", "difficulty": "medium", "stem": "函数 $y = \\sin(x)$ 的最小正周期是？", "options": ["$\\pi$", "$2\\pi$", "$\\frac{\\pi}{2}$", "$4\\pi$"], "answer": 1, "source": "llm" },
-    { "id": "llm-7", "type": "single", "difficulty": "hard", "stem": "若复数 $z$ 满足 $z^2 + 4 = 0$，则 $|z|$ 的值为？", "options": ["$1$", "$2$", "$4$", "$\\sqrt{2}$"], "answer": 1, "source": "llm" },
-    { "id": "llm-8", "type": "single", "difficulty": "hard", "stem": "曲线 $y = x^3 - 3x$ 的极值点个数为？", "options": ["$0$", "$1$", "$2$", "$3$"], "answer": 2, "source": "llm" },
-
-    { "id": "llm-9", "type": "multiple", "difficulty": "easy", "stem": "下列哪些是质数？", "options": ["$1$", "$2$", "$9$", "$11$"], "answer": [1, 3], "source": "llm" },
-    { "id": "llm-10", "type": "multiple", "difficulty": "medium", "stem": "下列函数中，在 $(0, +\\infty)$ 上单调递增的有？", "options": ["$y = x^2$", "$y = \\sqrt{x}$", "$y = \\frac{1}{x}$", "$y = \\ln(x)$"], "answer": [0, 1, 3], "source": "llm" },
-    { "id": "llm-11", "type": "multiple", "difficulty": "hard", "stem": "关于向量 $\\vec{a}, \\vec{b}$，下列命题恒成立的有？", "options": ["$|\\vec{a}\\cdot\\vec{b}| \\le |\\vec{a}||\\vec{b}|$", "$|\\vec{a}+\\vec{b}| \\le |\\vec{a}|+|\\vec{b}|$", "若 $\\vec{a}\\cdot\\vec{b}=0$ 则 $\\vec{a}=\\vec{0}$ 或 $\\vec{b}=\\vec{0}$", "$\\vec{a}\\times\\vec{a}=\\vec{0}$"], "answer": [0, 1, 3], "source": "llm" },
-
-    { "id": "llm-12", "type": "judge", "difficulty": "easy", "stem": "$0$ 是自然数。", "options": ["正确", "错误"], "answer": 0, "source": "llm" },
-    { "id": "llm-13", "type": "judge", "difficulty": "medium", "stem": "函数 $f(x) = |x|$ 在 $x = 0$ 处可导。", "options": ["正确", "错误"], "answer": 1, "source": "llm" },
-    { "id": "llm-14", "type": "judge", "difficulty": "hard", "stem": "任意两个同阶的正定矩阵之和仍是正定矩阵。", "options": ["正确", "错误"], "answer": 0, "source": "llm" },
-
-    { "id": "llm-15", "type": "blank", "difficulty": "easy", "stem": "若 $2x + 3 = 7$，则 $x =$ ____。", "answer": "$2$", "source": "llm" },
-    { "id": "llm-16", "type": "blank", "difficulty": "medium", "stem": "$\\int_0^1 x\\,dx =$ ____。", "answer": "$\\frac{1}{2}$", "source": "llm" },
-    { "id": "llm-17", "type": "blank", "difficulty": "hard", "stem": "行列式 $\\begin{vmatrix}1&2\\\\3&4\\end{vmatrix} =$ ____。", "answer": "$-2$", "source": "llm" },
-
-    { "id": "llm-18", "type": "essay", "difficulty": "medium", "stem": "请用求导法求函数 $f(x) = x^3 - 3x$ 在区间 $[-2, 2]$ 上的最大值和最小值。", "answer": "$f'(x)=3x^2-3=0 \\Rightarrow x=\\pm1$；计算 $f(-2)=-2, f(-1)=2, f(1)=-2, f(2)=2$；最大值为 $2$，最小值为 $-2$。", "source": "llm" },
-    { "id": "llm-19", "type": "essay", "difficulty": "hard", "stem": "证明：若数列 $\\{a_n\\}$ 满足 $a_1=1, a_{n+1}=\\sqrt{2+a_n}$，则该数列收敛，并求其极限。", "answer": "用数学归纳法证有上界 $2$ 且单调递增，故收敛。设极限为 $L$，则 $L=\\sqrt{2+L} \\Rightarrow L^2-L-2=0 \\Rightarrow L=2$（舍负）。", "source": "llm" },
-
-    { "id": "llm-20", "type": "single", "difficulty": "easy", "stem": "“床前明月光”出自哪位诗人？", "options": ["杜甫", "李白", "白居易", "王维"], "answer": 1, "source": "llm" },
-    { "id": "llm-21", "type": "single", "difficulty": "easy", "stem": "下列词语中没有错别字的是？", "options": ["按步就班", "一愁莫展", "川流不息", "穿流不息"], "answer": 2, "source": "llm" },
-    { "id": "llm-22", "type": "single", "difficulty": "medium", "stem": "《红楼梦》的作者是？", "options": ["施耐庵", "吴承恩", "曹雪芹", "罗贯中"], "answer": 2, "source": "llm" },
-    { "id": "llm-23", "type": "single", "difficulty": "medium", "stem": "“孔雀东南飞”出自哪部古典文学作品集？", "options": ["《玉台新咏》", "《文选》", "《乐府诗集》", "《古诗十九首》"], "answer": 0, "source": "llm" },
-    { "id": "llm-24", "type": "single", "difficulty": "hard", "stem": "下列哪项不属于“六书”造字法？", "options": ["象形", "指事", "假借", "连珠"], "answer": 3, "source": "llm" },
-
-    { "id": "llm-25", "type": "multiple", "difficulty": "easy", "stem": "下列属于唐代诗人的有？", "options": ["李白", "杜甫", "苏轼", "白居易"], "answer": [0, 1, 3], "source": "llm" },
-    { "id": "llm-26", "type": "multiple", "difficulty": "medium", "stem": "下列作品属于鲁迅的有？", "options": ["《呐喊》", "《彷徨》", "《朝花夕拾》", "《子夜》"], "answer": [0, 1, 2], "source": "llm" },
-    { "id": "llm-27", "type": "multiple", "difficulty": "hard", "stem": "下列属于《红楼梦》中“金陵十二钗”正册的人物有？", "options": ["林黛玉", "薛宝钗", "晴雯", "王熙凤"], "answer": [0, 1, 3], "source": "llm" },
-
-    { "id": "llm-28", "type": "judge", "difficulty": "easy", "stem": "《诗经》是中国最早的诗歌总集。", "options": ["正确", "错误"], "answer": 0, "source": "llm" },
-    { "id": "llm-29", "type": "judge", "difficulty": "medium", "stem": "“师者，所以传道受业解惑也”出自《陋室铭》。", "options": ["正确", "错误"], "answer": 1, "source": "llm" },
-    { "id": "llm-30", "type": "judge", "difficulty": "hard", "stem": "现代汉语普通话以北方语音为标准音，以白话文著作为语法规范。", "options": ["正确", "错误"], "answer": 0, "source": "llm" },
-
-    { "id": "llm-31", "type": "blank", "difficulty": "easy", "stem": "“海内存知己，____若比邻。”（王勃《送杜少府之任蜀州》）", "answer": "天涯", "source": "llm" },
-    { "id": "llm-32", "type": "blank", "difficulty": "medium", "stem": "“会当凌绝顶，一览众____小。”（杜甫《望岳》）", "answer": "山", "source": "llm" },
-    { "id": "llm-33", "type": "blank", "difficulty": "hard", "stem": "“落霞与孤鹜齐飞，____共天一色。”（王勃《滕王阁序》）", "answer": "秋水", "source": "llm" },
-
-    { "id": "llm-34", "type": "essay", "difficulty": "medium", "stem": "请简述《岳阳楼记》中“先天下之忧而忧，后天下之乐而乐”的思想内涵。", "answer": "体现了范仲淹以天下为己任的政治抱负和忧国忧民的情怀，超越个人荣辱，以公共利益为先。", "source": "llm" },
-    { "id": "llm-35", "type": "essay", "difficulty": "hard", "stem": "试分析鲁迅《阿Q正传》中“精神胜利法”的表现及其社会根源。", "answer": "阿Q在受辱后以“儿子打老子”等自我安慰法取得精神胜利；根源在于封建压迫下底层民众无力反抗，只能以自我麻痹维持生存尊严。", "source": "llm" },
-
-    { "id": "llm-36", "type": "single", "difficulty": "easy", "stem": "She ___ to school every day.", "options": ["go", "goes", "going", "gone"], "answer": 1, "source": "llm" },
-    { "id": "llm-37", "type": "single", "difficulty": "easy", "stem": "The book is ___ the table.", "options": ["in", "on", "at", "to"], "answer": 1, "source": "llm" },
-    { "id": "llm-38", "type": "single", "difficulty": "medium", "stem": "If I ___ you, I would accept the offer.", "options": ["am", "was", "were", "be"], "answer": 2, "source": "llm" },
-    { "id": "llm-39", "type": "single", "difficulty": "medium", "stem": "The project ___ by the end of next month.", "options": ["will complete", "will be completed", "completed", "completes"], "answer": 1, "source": "llm" },
-    { "id": "llm-40", "type": "single", "difficulty": "hard", "stem": "___ the weather was bad, we decided to go out.", "options": ["Although", "Because", "Since", "If"], "answer": 0, "source": "llm" },
-
-    { "id": "llm-41", "type": "multiple", "difficulty": "easy", "stem": "Which of the following are fruits?", "options": ["apple", "carrot", "banana", "potato"], "answer": [0, 2], "source": "llm" },
-    { "id": "llm-42", "type": "multiple", "difficulty": "medium", "stem": "Which are correct past tense forms?", "options": ["went", "goed", "ran", "runned"], "answer": [0, 2], "source": "llm" },
-    { "id": "llm-43", "type": "multiple", "difficulty": "hard", "stem": "Which sentences use the subjunctive mood correctly?", "options": ["I wish I were taller.", "If I was rich, I'd travel.", "It's vital that he be informed.", "She talks as if she was a queen."], "answer": [0, 2], "source": "llm" },
-
-    { "id": "llm-44", "type": "judge", "difficulty": "easy", "stem": "'Apple' is a countable noun.", "options": ["正确", "错误"], "answer": 0, "source": "llm" },
-    { "id": "llm-45", "type": "judge", "difficulty": "medium", "stem": "'He suggested to go swimming' is grammatically correct.", "options": ["正确", "错误"], "answer": 1, "source": "llm" },
-    { "id": "llm-46", "type": "judge", "difficulty": "hard", "stem": "The present perfect tense can be used with a specific past time adverb like 'yesterday'.", "options": ["正确", "错误"], "answer": 1, "source": "llm" },
-
-    { "id": "llm-47", "type": "blank", "difficulty": "easy", "stem": "I like ____ (read) books in my free time.", "answer": "reading", "source": "llm" },
-    { "id": "llm-48", "type": "blank", "difficulty": "medium", "stem": "She is not only intelligent ____ hardworking.", "answer": "but", "source": "llm" },
-    { "id": "llm-49", "type": "blank", "difficulty": "hard", "stem": "The report, ____ (publish) last week, caused heated discussion.", "answer": "published", "source": "llm" },
-
-    { "id": "llm-50", "type": "essay", "difficulty": "medium", "stem": "Write a short paragraph (50-80 words) about your favorite hobby.", "answer": "My favorite hobby is reading. It not only broadens my horizons but also helps me relax after a busy day. Through books, I can travel to different worlds and learn about various cultures.", "source": "llm" },
-    { "id": "llm-51", "type": "essay", "difficulty": "hard", "stem": "Some people think university education should be free. Do you agree or disagree? Give reasons.", "answer": "I partly agree. Free education ensures equal opportunity and benefits society. However, completely free education may strain public funds. A balanced approach with scholarships and loans is more practical.", "source": "llm" },
-
-    { "id": "llm-52", "type": "single", "difficulty": "easy", "stem": "下列单位中，属于国际单位制基本单位的是？", "options": ["牛顿", "焦耳", "安培", "瓦特"], "answer": 2, "source": "llm" },
-    { "id": "llm-53", "type": "single", "difficulty": "easy", "stem": "光在真空中的传播速度约为？", "options": ["3×10⁶ m/s", "3×10⁸ m/s", "3×10¹⁰ m/s", "3×10⁵ m/s"], "answer": 1, "source": "llm" },
-    { "id": "llm-54", "type": "single", "difficulty": "medium", "stem": "一物体做匀加速直线运动，初速度 2 m/s，加速度 3 m/s²，第 3 秒末的速度是？", "options": ["9 m/s", "11 m/s", "8 m/s", "15 m/s"], "answer": 1, "source": "llm" },
-    { "id": "llm-55", "type": "single", "difficulty": "medium", "stem": "根据欧姆定律，若电压为 12 V，电阻为 4 Ω，则电流为？", "options": ["48 A", "3 A", "0.33 A", "16 A"], "answer": 1, "source": "llm" },
-    { "id": "llm-56", "type": "single", "difficulty": "hard", "stem": "一束光从空气射入水中，下列物理量不变的是？", "options": ["波长", "波速", "频率", "传播方向"], "answer": 2, "source": "llm" },
-
-    { "id": "llm-57", "type": "multiple", "difficulty": "easy", "stem": "下列属于矢量的物理量有？", "options": ["位移", "路程", "速度", "速率"], "answer": [0, 2], "source": "llm" },
-    { "id": "llm-58", "type": "multiple", "difficulty": "medium", "stem": "关于牛顿运动定律，下列说法正确的有？", "options": ["牛顿第一定律也称为惯性定律", "F = ma 是牛顿第二定律", "作用力与反作用力可以相互抵消", "牛顿第三定律适用于任何参考系"], "answer": [0, 1], "source": "llm" },
-    { "id": "llm-59", "type": "multiple", "difficulty": "hard", "stem": "下列关于电磁感应的说法正确的有？", "options": ["法拉第发现了电磁感应现象", "感应电流的磁场总是阻碍原磁通量的变化", "楞次定律是能量守恒的体现", "导体在磁场中运动必产生感应电流"], "answer": [0, 1, 2], "source": "llm" },
-
-    { "id": "llm-60", "type": "judge", "difficulty": "easy", "stem": "光在真空中沿直线传播。", "options": ["正确", "错误"], "answer": 0, "source": "llm" },
-    { "id": "llm-61", "type": "judge", "difficulty": "medium", "stem": "物体做匀速圆周运动时，其加速度为零。", "options": ["正确", "错误"], "answer": 1, "source": "llm" },
-    { "id": "llm-62", "type": "judge", "difficulty": "hard", "stem": "在光电效应中，增大入射光的强度，光电子的最大初动能增大。", "options": ["正确", "错误"], "answer": 1, "source": "llm" },
-
-    { "id": "llm-63", "type": "blank", "difficulty": "easy", "stem": "重力的计算公式是 G = ____（用符号表示）。", "answer": "mg", "source": "llm" },
-    { "id": "llm-64", "type": "blank", "difficulty": "medium", "stem": "一物体质量 2 kg，加速度 5 m/s²，所受合力为 ____ N。", "answer": "10", "source": "llm" },
-    { "id": "llm-65", "type": "blank", "difficulty": "hard", "stem": "真空中两点电荷相距 r，电荷量分别为 q₁ 和 q₂，它们之间的库仑力 F = ____。", "answer": "kq₁q₂/r²", "source": "llm" },
-
-    { "id": "llm-66", "type": "essay", "difficulty": "medium", "stem": "请用牛顿第二定律解释：为什么汽车紧急刹车时乘客会向前倾？", "answer": "刹车时车减速，乘客下半身随车减速，而上半身由于惯性保持原来的运动状态继续向前，故向前倾。这体现了牛顿第一定律（惯性定律）。", "source": "llm" },
-    { "id": "llm-67", "type": "essay", "difficulty": "hard", "stem": "推导：质量为 m 的物体从高度 h 自由下落，求落地速度（忽略空气阻力）。", "answer": "由机械能守恒：mgh = ½mv²，两边消去 m 得 gh = ½v²，故 v = √(2gh)。", "source": "llm" },
-
-    { "id": "llm-68", "type": "single", "difficulty": "easy", "stem": "下列物质属于纯净物的是？", "options": ["空气", "蒸馏水", "海水", "矿泉水"], "answer": 1, "source": "llm" },
-    { "id": "llm-69", "type": "single", "difficulty": "easy", "stem": "氧气的化学式是？", "options": ["O", "O₂", "O₃", "CO₂"], "answer": 1, "source": "llm" },
-    { "id": "llm-70", "type": "single", "difficulty": "medium", "stem": "下列反应属于氧化还原反应的是？", "options": ["NaOH + HCl → NaCl + H₂O", "2Na + Cl₂ → 2NaCl", "CaCO₃ → CaO + CO₂", "AgNO₃ + NaCl → AgCl↓ + NaNO₃"], "answer": 1, "source": "llm" },
-    { "id": "llm-71", "type": "single", "difficulty": "medium", "stem": "pH = 7 的溶液呈？", "options": ["酸性", "中性", "碱性", "无法确定"], "answer": 1, "source": "llm" },
-    { "id": "llm-72", "type": "single", "difficulty": "hard", "stem": "在可逆反应中，加入催化剂会？", "options": ["增大平衡常数", "增大反应速率", "使平衡正向移动", "提高反应物转化率"], "answer": 1, "source": "llm" },
-
-    { "id": "llm-73", "type": "multiple", "difficulty": "easy", "stem": "下列属于常见气体的有？", "options": ["O₂", "H₂", "Fe", "N₂"], "answer": [0, 1, 3], "source": "llm" },
-    { "id": "llm-74", "type": "multiple", "difficulty": "medium", "stem": "下列属于电解质的有？", "options": ["NaCl 固体", "NaOH 溶液", "酒精", "盐酸"], "answer": [1, 3], "source": "llm" },
-    { "id": "llm-75", "type": "multiple", "difficulty": "hard", "stem": "关于化学平衡，下列说法正确的有？", "options": ["平衡时正逆反应速率相等", "改变反应物浓度平衡会发生移动", "催化剂能缩短达到平衡的时间", "平衡常数只与温度有关"], "answer": [0, 1, 2, 3], "source": "llm" },
-
-    { "id": "llm-76", "type": "judge", "difficulty": "easy", "stem": "水由氢气和氧气组成。", "options": ["正确", "错误"], "answer": 1, "source": "llm" },
-    { "id": "llm-77", "type": "judge", "difficulty": "medium", "stem": "稀释醋酸溶液时，溶液的 pH 增大。", "options": ["正确", "错误"], "answer": 0, "source": "llm" },
-    { "id": "llm-78", "type": "judge", "difficulty": "hard", "stem": "在原电池中，正极发生氧化反应。", "options": ["正确", "错误"], "answer": 1, "source": "llm" },
-
-    { "id": "llm-79", "type": "blank", "difficulty": "easy", "stem": "水的化学式是 ____。", "answer": "H₂O", "source": "llm" },
-    { "id": "llm-80", "type": "blank", "difficulty": "medium", "stem": "铁的元素符号是 ____。", "answer": "Fe", "source": "llm" },
-    { "id": "llm-81", "type": "blank", "difficulty": "hard", "stem": "在 2H₂ + O₂ → 2H₂O 中，H₂ 与 O₂ 的化学计量数之比为 ____。", "answer": "2:1", "source": "llm" },
-
-    { "id": "llm-82", "type": "essay", "difficulty": "medium", "stem": "请举例说明化学变化与物理变化的本质区别，并各举一例。", "answer": "化学变化有新物质生成（如铁生锈），物理变化没有新物质生成（如冰融化）。本质区别在于是否有新物质产生。", "source": "llm" },
-    { "id": "llm-83", "type": "essay", "difficulty": "hard", "stem": "请解释为什么钠需要保存在煤油中，并写出钠与水反应的化学方程式。", "answer": "钠化学性质活泼，易与空气中的 O₂ 和 H₂O 反应，煤油隔绝空气。2Na + 2H₂O → 2NaOH + H₂↑。", "source": "llm" },
-
-    { "id": "llm-84", "type": "single", "difficulty": "easy", "stem": "植物细胞中进行光合作用的场所是？", "options": ["线粒体", "叶绿体", "细胞核", "液泡"], "answer": 1, "source": "llm" },
-    { "id": "llm-85", "type": "single", "difficulty": "easy", "stem": "人体最大的器官是？", "options": ["心脏", "肝脏", "皮肤", "大脑"], "answer": 2, "source": "llm" },
-    { "id": "llm-86", "type": "single", "difficulty": "medium", "stem": "DNA 的基本组成单位是？", "options": ["氨基酸", "脱氧核苷酸", "核糖核苷酸", "葡萄糖"], "answer": 1, "source": "llm" },
-    { "id": "llm-87", "type": "single", "difficulty": "medium", "stem": "基因分离定律发生在？", "options": ["有丝分裂", "减数第一次分裂", "减数第二次分裂", "受精作用"], "answer": 1, "source": "llm" },
-    { "id": "llm-88", "type": "single", "difficulty": "hard", "stem": "下列哪种细胞具有细胞周期？", "options": ["神经细胞", "根尖分生区细胞", "肌肉细胞", "哺乳动物成熟红细胞"], "answer": 1, "source": "llm" },
-
-    { "id": "llm-89", "type": "multiple", "difficulty": "easy", "stem": "下列属于人体必需营养素的有？", "options": ["糖类", "蛋白质", "脂肪", "纤维素"], "answer": [0, 1, 2], "source": "llm" },
-    { "id": "llm-90", "type": "multiple", "difficulty": "medium", "stem": "下列属于内环境组成成分的有？", "options": ["血浆", "淋巴", "组织液", "细胞内液"], "answer": [0, 1, 2], "source": "llm" },
-    { "id": "llm-91", "type": "multiple", "difficulty": "hard", "stem": "关于孟德尔遗传定律，下列说法正确的有？", "options": ["分离定律的实质是等位基因随同源染色体分开而分离", "自由组合定律发生在减数第一次分裂", "测交可检测待测个体的基因型", "F₂ 的性状分离比一定为 3:1"], "answer": [0, 1, 2], "source": "llm" },
-
-    { "id": "llm-92", "type": "judge", "difficulty": "easy", "stem": "病毒不具有细胞结构。", "options": ["正确", "错误"], "answer": 0, "source": "llm" },
-    { "id": "llm-93", "type": "judge", "difficulty": "medium", "stem": "有氧呼吸的场所只有线粒体。", "options": ["正确", "错误"], "answer": 1, "source": "llm" },
-    { "id": "llm-94", "type": "judge", "difficulty": "hard", "stem": "基因突变一定导致生物性状的改变。", "options": ["正确", "错误"], "answer": 1, "source": "llm" },
-
-    { "id": "llm-95", "type": "blank", "difficulty": "easy", "stem": "细胞呼吸的主要场所是 ____。", "answer": "线粒体", "source": "llm" },
-    { "id": "llm-96", "type": "blank", "difficulty": "medium", "stem": "光合作用的总反应式为：6CO₂ + 6H₂O → ____ + 6O₂。", "answer": "C₆H₁₂O₆", "source": "llm" },
-    { "id": "llm-97", "type": "blank", "difficulty": "hard", "stem": "人类红绿色盲是由 ____ 基因控制的遗传病。", "answer": "X 染色体隐性", "source": "llm" },
-
-    { "id": "llm-98", "type": "essay", "difficulty": "medium", "stem": "请简述有氧呼吸的三个阶段及其场所。", "answer": "第一阶段在细胞质基质（葡萄糖→丙酮酸+[H]+少量 ATP）；第二阶段在线粒体基质（丙酮酸+H₂O→CO₂+[H]+少量 ATP）；第三阶段在线粒体内膜（[H]+O₂→H₂O+大量 ATP）。", "source": "llm" },
-    { "id": "llm-99", "type": "essay", "difficulty": "hard", "stem": "请解释为什么自然选择决定生物进化的方向。", "answer": "自然选择保留有利变异、淘汰不利变异，使种群基因频率发生定向改变，从而决定生物进化的方向。变异是不定向的，选择是定向的。", "source": "llm" },
-
-    { "id": "llm-100", "type": "single", "difficulty": "easy", "stem": "中国历史上第一个统一的中央集权封建国家是？", "options": ["夏朝", "商朝", "秦朝", "汉朝"], "answer": 2, "source": "llm" },
-    { "id": "llm-101", "type": "single", "difficulty": "easy", "stem": "鸦片战争爆发于哪一年？", "options": ["1840 年", "1842 年", "1856 年", "1860 年"], "answer": 0, "source": "llm" },
-    { "id": "llm-102", "type": "single", "difficulty": "medium", "stem": "辛亥革命爆发于哪一年？", "options": ["1894 年", "1911 年", "1919 年", "1921 年"], "answer": 1, "source": "llm" },
-    { "id": "llm-103", "type": "single", "difficulty": "medium", "stem": "文艺复兴运动最早兴起于？", "options": ["英国", "法国", "意大利", "德意志"], "answer": 2, "source": "llm" },
-    { "id": "llm-104", "type": "single", "difficulty": "hard", "stem": "《南京条约》中割让给英国的领土是？", "options": ["台湾", "香港岛", "澳门", "九龙司"], "answer": 1, "source": "llm" },
-
-    { "id": "llm-105", "type": "multiple", "difficulty": "easy", "stem": "下列属于中国古代四大发明的有？", "options": ["造纸术", "指南针", "地动仪", "火药"], "answer": [0, 1, 3], "source": "llm" },
-    { "id": "llm-106", "type": "multiple", "difficulty": "medium", "stem": "下列属于近代中国不平等条约的有？", "options": ["《南京条约》", "《马关条约》", "《辛丑条约》", "《凡尔赛和约》"], "answer": [0, 1, 2], "source": "llm" },
-    { "id": "llm-107", "type": "multiple", "difficulty": "hard", "stem": "关于新文化运动，下列说法正确的有？", "options": ["以《新青年》为主要阵地", "提倡民主与科学", "是一次思想解放运动", "标志着中国新民主主义革命的开始"], "answer": [0, 1, 2], "source": "llm" },
-
-    { "id": "llm-108", "type": "judge", "difficulty": "easy", "stem": "秦始皇统一六国后推行郡县制。", "options": ["正确", "错误"], "answer": 0, "source": "llm" },
-    { "id": "llm-109", "type": "judge", "difficulty": "medium", "stem": "五四运动标志着中国旧民主主义革命的结束。", "options": ["正确", "错误"], "answer": 1, "source": "llm" },
-    { "id": "llm-110", "type": "judge", "difficulty": "hard", "stem": "工业革命最早开始于英国的纺织业。", "options": ["正确", "错误"], "answer": 0, "source": "llm" },
-
-    { "id": "llm-111", "type": "blank", "difficulty": "easy", "stem": "中国历史上唯一的女皇帝是 ____。", "answer": "武则天", "source": "llm" },
-    { "id": "llm-112", "type": "blank", "difficulty": "medium", "stem": "1919 年爆发的 ____ 运动标志着中国新民主主义革命的开端。", "answer": "五四", "source": "llm" },
-    { "id": "llm-113", "type": "blank", "difficulty": "hard", "stem": "公元前 221 年，____ 统一六国，建立秦朝。", "answer": "嬴政（秦始皇）", "source": "llm" },
-
-    { "id": "llm-114", "type": "essay", "difficulty": "medium", "stem": "请简述秦始皇统一六国的历史意义。", "answer": "结束了长期分裂割据局面，建立了中国历史上第一个统一的多民族中央集权国家；统一文字、货币、度量衡，促进了经济文化交流；推行郡县制，奠定了中国两千多年政治制度的基本格局。", "source": "llm" },
-    { "id": "llm-115", "type": "essay", "difficulty": "hard", "stem": "请分析鸦片战争对中国社会的影响。", "answer": "政治上：中国开始沦为半殖民地半封建社会，丧失部分主权；经济上：自然经济开始解体，被迫卷入资本主义世界市场；思想上：部分知识分子开始向西方学习，“开眼看世界”。是中国近代史的开端。", "source": "llm" }
+    {
+      "id": "la-1", "subject": "linear_algebra", "topic": "matrix",
+      "type": "single", "difficulty": "easy",
+      "stem": "设 $A = \\begin{pmatrix}1&2\\\\3&4\\end{pmatrix}$，$B = \\begin{pmatrix}0&1\\\\1&0\\end{pmatrix}$，则 $AB = $？",
+      "options": ["$\\begin{pmatrix}2&1\\\\4&3\\end{pmatrix}$", "$\\begin{pmatrix}1&2\\\\3&4\\end{pmatrix}$", "$\\begin{pmatrix}3&4\\\\1&2\\end{pmatrix}$", "$\\begin{pmatrix}2&3\\\\1&4\\end{pmatrix}$"],
+      "answer": 0, "source": "bank"
+    },
+    {
+      "id": "la-2", "subject": "linear_algebra", "topic": "matrix",
+      "type": "single", "difficulty": "medium",
+      "stem": "设 $A$ 为 $3 \\times 3$ 矩阵，且 $\\det(A) = 2$，则 $\\det(2A) = $？",
+      "options": ["$4$", "$8$", "$16$", "$6$"],
+      "answer": 2, "source": "bank"
+    },
+    {
+      "id": "la-3", "subject": "linear_algebra", "topic": "determinant",
+      "type": "single", "difficulty": "easy",
+      "stem": "行列式 $\\begin{vmatrix}1&2\\\\3&4\\end{vmatrix} = $ ____。",
+      "answer": "$-2$", "type": "blank", "source": "bank"
+    },
+    {
+      "id": "la-4", "subject": "linear_algebra", "topic": "determinant",
+      "type": "single", "difficulty": "medium",
+      "stem": "若 $A$ 为 $3 \\times 3$ 矩阵，且 $\\det(A) = 2$，则 $\\det(A^{-1}) = $？",
+      "options": ["$2$", "$\\frac{1}{2}$", "$-2$", "$-\\frac{1}{2}$"],
+      "answer": 1, "source": "bank"
+    },
+    {
+      "id": "la-5", "subject": "linear_algebra", "topic": "vector_space",
+      "type": "single", "difficulty": "easy",
+      "stem": "向量 $\\vec{a} = (1, 2, 3)$ 与 $\\vec{b} = (4, 5, 6)$ 的点积 $\\vec{a} \\cdot \\vec{b} = $？",
+      "options": ["$15$", "$32$", "$21$", "$28$"],
+      "answer": 1, "source": "bank"
+    },
+    {
+      "id": "la-6", "subject": "linear_algebra", "topic": "vector_space",
+      "type": "judge", "difficulty": "medium",
+      "stem": "若向量组 $\\vec{a}_1, \\vec{a}_2, \\vec{a}_3$ 线性无关，则 $\\vec{a}_1, \\vec{a}_2$ 也线性无关。",
+      "options": ["正确", "错误"], "answer": 0, "source": "bank"
+    },
+    {
+      "id": "la-7", "subject": "linear_algebra", "topic": "eigenvalue",
+      "type": "single", "difficulty": "medium",
+      "stem": "矩阵 $A = \\begin{pmatrix}2&1\\\\1&2\\end{pmatrix}$ 的特征值为？",
+      "options": ["$1$ 和 $3$", "$2$ 和 $2$", "$0$ 和 $4$", "$-1$ 和 $5$"],
+      "answer": 0, "source": "bank"
+    },
+    {
+      "id": "la-8", "subject": "linear_algebra", "topic": "eigenvalue",
+      "type": "single", "difficulty": "hard",
+      "stem": "设 $A$ 为 $n$ 阶方阵，$\\lambda$ 是 $A$ 的特征值，则下列说法错误的是？",
+      "options": ["$\\lambda$ 满足 $\\det(A - \\lambda I) = 0$", "$A^T$ 也有特征值 $\\lambda$", "$A^{-1}$ 存在时，$\\frac{1}{\\lambda}$ 是 $A^{-1}$ 的特征值", "$\\lambda$ 一定是实数"],
+      "answer": 3, "source": "bank"
+    },
+    {
+      "id": "la-9", "subject": "linear_algebra", "topic": "linear_system",
+      "type": "single", "difficulty": "easy",
+      "stem": "线性方程组 $\\begin{cases}x + y = 3\\\\2x - y = 0\\end{cases}$ 的解为？",
+      "options": ["$x = 1, y = 2$", "$x = 2, y = 1$", "$x = 3, y = 0$", "$x = 0, y = 3$"],
+      "answer": 0, "source": "bank"
+    },
+    {
+      "id": "la-10", "subject": "linear_algebra", "topic": "linear_system",
+      "type": "essay", "difficulty": "medium",
+      "stem": "用高斯消元法解线性方程组：$\\begin{cases}x + 2y + z = 1\\\\2x + y + 3z = 3\\\\x + y + z = 2\\end{cases}$",
+      "answer": "增广矩阵 $\\begin{pmatrix}1&2&1&|&1\\\\2&1&3&|&3\\\\1&1&1&|&2\\end{pmatrix}$，行变换得 $x = 1, y = -1, z = 2$。",
+      "source": "bank"
+    },
+    {
+      "id": "la-11", "subject": "linear_algebra", "topic": "linear_transform",
+      "type": "single", "difficulty": "medium",
+      "stem": "设 $T: \\mathbb{R}^2 \\to \\mathbb{R}^2$ 为线性变换，且 $T\\begin{pmatrix}1\\\\0\\end{pmatrix} = \\begin{pmatrix}2\\\\1\\end{pmatrix}$，$T\\begin{pmatrix}0\\\\1\\end{pmatrix} = \\begin{pmatrix}1\\\\3\\end{pmatrix}$，则 $T\\begin{pmatrix}3\\\\2\\end{pmatrix} = $？",
+      "options": ["$\\begin{pmatrix}8\\\\9\\end{pmatrix}$", "$\\begin{pmatrix}7\\\\8\\end{pmatrix}$", "$\\begin{pmatrix}6\\\\7\\end{pmatrix}$", "$\\begin{pmatrix}9\\\\8\\end{pmatrix}$"],
+      "answer": 0, "source": "bank"
+    },
+    {
+      "id": "la-12", "subject": "linear_algebra", "topic": "matrix",
+      "type": "multiple", "difficulty": "medium",
+      "stem": "下列关于矩阵的说法正确的有？",
+      "options": ["矩阵乘法满足交换律", "矩阵乘法满足结合律", "若 $AB = AC$ 则 $B = C$", "单位矩阵与任何同阶方阵可交换"],
+      "answer": [1, 3], "source": "bank"
+    },
+    {
+      "id": "cal-1", "subject": "calculus", "topic": "limit",
+      "type": "single", "difficulty": "easy",
+      "stem": "$\\lim_{x \\to 0} \\frac{\\sin x}{x} = $？",
+      "options": ["$0$", "$1$", "$\\infty$", "不存在"],
+      "answer": 1, "source": "bank"
+    },
+    {
+      "id": "cal-2", "subject": "calculus", "topic": "limit",
+      "type": "single", "difficulty": "medium",
+      "stem": "$\\lim_{x \\to 0} \\frac{e^x - 1}{x} = $ ____。",
+      "answer": "$1$", "type": "blank", "source": "bank"
+    },
+    {
+      "id": "cal-3", "subject": "calculus", "topic": "derivative",
+      "type": "single", "difficulty": "easy",
+      "stem": "函数 $f(x) = x^3 - 3x$ 的导数 $f'(x) = $？",
+      "options": ["$3x^2 - 3$", "$3x^2$", "$x^2 - 3$", "$3x^2 - 3x$"],
+      "answer": 0, "source": "bank"
+    },
+    {
+      "id": "cal-4", "subject": "calculus", "topic": "derivative",
+      "type": "single", "difficulty": "medium",
+      "stem": "函数 $f(x) = \\ln(\\sin x)$ 的导数 $f'(x) = $？",
+      "options": ["$\\cot x$", "$\\tan x$", "$\\frac{1}{\\sin x}$", "$\\cos x$"],
+      "answer": 0, "source": "bank"
+    },
+    {
+      "id": "cal-5", "subject": "calculus", "topic": "derivative",
+      "type": "judge", "difficulty": "easy",
+      "stem": "函数 $f(x) = |x|$ 在 $x = 0$ 处可导。",
+      "options": ["正确", "错误"], "answer": 1, "source": "bank"
+    },
+    {
+      "id": "cal-6", "subject": "calculus", "topic": "integral",
+      "type": "single", "difficulty": "easy",
+      "stem": "$\\int_0^1 x \\, dx = $？",
+      "options": ["$1$", "$\\frac{1}{2}$", "$\\frac{1}{3}$", "$2$"],
+      "answer": 1, "source": "bank"
+    },
+    {
+      "id": "cal-7", "subject": "calculus", "topic": "integral",
+      "type": "single", "difficulty": "medium",
+      "stem": "$\\int x e^x \\, dx = $？",
+      "options": ["$xe^x + C$", "$xe^x - e^x + C$", "$\\frac{x^2}{2}e^x + C$", "$e^x + C$"],
+      "answer": 1, "source": "bank"
+    },
+    {
+      "id": "cal-8", "subject": "calculus", "topic": "integral",
+      "type": "blank", "difficulty": "easy",
+      "stem": "$\\int_0^1 x^2 \\, dx = $ ____。",
+      "answer": "$\\frac{1}{3}$", "source": "bank"
+    },
+    {
+      "id": "cal-9", "subject": "calculus", "topic": "series",
+      "type": "single", "difficulty": "medium",
+      "stem": "级数 $\\sum_{n=1}^{\\infty} \\frac{1}{n^2}$ 的收敛性为？",
+      "options": ["收敛", "发散", "条件收敛", "无法确定"],
+      "answer": 0, "source": "bank"
+    },
+    {
+      "id": "cal-10", "subject": "calculus", "topic": "series",
+      "type": "single", "difficulty": "hard",
+      "stem": "幂级数 $\\sum_{n=0}^{\\infty} \\frac{x^n}{n!}$ 的收敛半径为？",
+      "options": ["$1$", "$0$", "$\\infty$", "$e$"],
+      "answer": 2, "source": "bank"
+    },
+    {
+      "id": "cal-11", "subject": "calculus", "topic": "multivar",
+      "type": "single", "difficulty": "medium",
+      "stem": "设 $f(x, y) = x^2y + xy^2$，则 $\\frac{\\partial f}{\\partial x} = $？",
+      "options": ["$2xy + y^2$", "$x^2 + 2xy$", "$2xy$", "$x^2 + y^2$"],
+      "answer": 0, "source": "bank"
+    },
+    {
+      "id": "cal-12", "subject": "calculus", "topic": "ode",
+      "type": "single", "difficulty": "medium",
+      "stem": "微分方程 $\\frac{dy}{dx} = 2x$ 的通解为？",
+      "options": ["$y = x^2 + C$", "$y = 2x + C$", "$y = x^2$", "$y = 2x$"],
+      "answer": 0, "source": "bank"
+    },
+    {
+      "id": "cal-13", "subject": "calculus", "topic": "ode",
+      "type": "single", "difficulty": "hard",
+      "stem": "微分方程 $y'' + y = 0$ 的通解为？",
+      "options": ["$y = C_1e^x + C_2e^{-x}$", "$y = C_1\\cos x + C_2\\sin x$", "$y = C_1x + C_2$", "$y = C_1e^{ix} + C_2e^{-ix}$"],
+      "answer": 1, "source": "bank"
+    },
+    {
+      "id": "cal-14", "subject": "calculus", "topic": "derivative",
+      "type": "essay", "difficulty": "medium",
+      "stem": "请用求导法求函数 $f(x) = x^3 - 3x$ 在区间 $[-2, 2]$ 上的最大值和最小值。",
+      "answer": "$f'(x)=3x^2-3=0 \\Rightarrow x=\\pm1$；计算 $f(-2)=-2, f(-1)=2, f(1)=-2, f(2)=2$；最大值为 $2$，最小值为 $-2$。",
+      "source": "bank"
+    },
+    {
+      "id": "cal-15", "subject": "calculus", "topic": "integral",
+      "type": "multiple", "difficulty": "medium",
+      "stem": "下列积分计算正确的有？",
+      "options": ["$\\int_{-1}^{1} x^3 \\, dx = 0$", "$\\int_0^{\\pi} \\sin x \\, dx = 2$", "$\\int_0^{1} \\frac{1}{x} \\, dx = 1$", "$\\int_0^{\\infty} e^{-x} \\, dx = 1$"],
+      "answer": [0, 1, 3], "source": "bank"
+    }
   ]
 }

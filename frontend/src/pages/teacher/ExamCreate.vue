@@ -15,7 +15,7 @@
         <h3>题库</h3>
         <el-checkbox-group v-model="selectedIds">
           <div v-for="q in questions" :key="q.id" class="question-card">
-            <el-checkbox :value="q.id">{{ q.stem }}</el-checkbox>
+            <el-checkbox :value="q.id"><MathText :text="q.stem" /></el-checkbox>
             <el-tag size="small">{{ q.type }}</el-tag>
           </div>
         </el-checkbox-group>
@@ -23,7 +23,7 @@
       <el-col :span="12">
         <h3>已选题目 ({{ selectedIds.length }})</h3>
         <div v-for="id in selectedIds" :key="id" class="selected-item">
-          {{ questions.find(q => q.id === id)?.stem }}
+          <MathText :text="questions.find(q => q.id === id)?.stem || ''" />
         </div>
       </el-col>
     </el-row>
@@ -36,6 +36,7 @@
 import { ref, reactive } from 'vue'
 import { ElMessage } from 'element-plus'
 import { questions as mockQuestions } from '@/mock/data'
+import MathText from '@/components/MathText.vue'
 
 const questions = ref(mockQuestions)
 const selectedIds = ref([])

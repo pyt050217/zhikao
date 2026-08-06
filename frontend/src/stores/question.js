@@ -19,10 +19,11 @@ export const useQuestionStore = defineStore('question', () => {
     }
   }
 
-  // 从 question-bank.json 本地按 type/difficulty 抽取（无需后端）
-  // 若部署了 Vercel 边缘函数 /generate，可改为调后端
-  function generateLocal({ type, difficulty, count }) {
+  // 从 question-bank.json 本地按 subject/type/difficulty 抽取
+  function generateLocal({ subject, type, difficulty, count }) {
     let pool = questionBank.questions.filter(q => q.type === type)
+    // 按学科筛选（如果有 subject 字段）
+    if (subject) pool = pool.filter(q => q.subject === subject)
     if (difficulty) pool = pool.filter(q => q.difficulty === difficulty)
     const existing = new Set(questions.value.map(q => q.stem))
     pool = pool.filter(q => !existing.has(q.stem))
@@ -35,12 +36,15 @@ export const useQuestionStore = defineStore('question', () => {
   }
 
   async function generate(payload) {
-    // 优先调边缘函数；失败则回退到本地题库
-    try {
-      const { data } = await generateQuestions(payload)
-      if (data.questions?.length) return data.questions
-    } catch (e) {
-      console.warn('generate 边缘函数失败，回退本地题库:', e.message)
+    // 有学科参数时调 LLM 边缘函数；否则回退本地题库
+    if (payload.subject) {
+      try {
+        const { data } = await generateQuestions(payload)
+        if (data.questions?.length) return data.questions
+      } catch (e) {
+        console.warn('LLM 生成失败:', e.message)
+        throw e  // LLM 失败时抛出错误，让前端显示提示，不再回退本地题库
+      }
     }
     return generateLocal(payload)
   }
@@ -48,6 +52,8 @@ export const useQuestionStore = defineStore('question', () => {
   async function saveToBank(items) {
     const rows = items.map(q => ({
       id: q.id,
+      subject: q.subject || '',
+      topic: q.topic || '',
       type: q.type,
       difficulty: q.difficulty || 'medium',
       stem: q.stem,

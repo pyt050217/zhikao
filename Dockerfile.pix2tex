@@ -1,0 +1,26 @@
+# Pix2tex 公式识别服务 Docker 镜像
+# 构建: docker build -t pix2tex -f Dockerfile.pix2tex .
+# 运行: docker run -d --name pix2tex -p 8502:8502 pix2tex
+#
+# CPU 环境单张推理约 2-5 秒，首次启动需下载模型（约 1GB）
+
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# 安装系统依赖
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# 安装 Pix2tex
+RUN pip install --no-cache-dir pix2tex[api]
+
+# 预下载模型（构建时下载，避免每次启动等待）
+RUN python -c "from pix2tex.cli import LatexOCR; LatexOCR()"
+
+EXPOSE 8502
+
+# 启动 Pix2tex API 服务
+# --host 0.0.0.0 允许外部访问
+CMD ["python", "-m", "pix2tex.api.app", "--host", "0.0.0.0", "--port", "8502"]

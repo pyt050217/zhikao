@@ -9,12 +9,12 @@
     </el-affix>
 
     <div v-for="(q, i) in questions" :key="q.id" class="question-block">
-      <h3>{{ i + 1 }}. <el-tag size="small">{{ q.type }}</el-tag> {{ q.stem }}</h3>
+      <h3>{{ i + 1 }}. <el-tag size="small">{{ q.type }}</el-tag> <MathText :text="q.stem" /></h3>
       <el-radio-group v-if="q.type === 'single'" v-model="answers[q.id]" class="option-group">
-        <el-radio v-for="(opt, j) in q.options" :key="j" :value="j">{{ opt }}</el-radio>
+        <el-radio v-for="(opt, j) in q.options" :key="j" :value="j"><MathText :text="opt" /></el-radio>
       </el-radio-group>
       <el-checkbox-group v-else-if="q.type === 'multiple'" v-model="answers[q.id]" class="option-group">
-        <el-checkbox v-for="(opt, j) in q.options" :key="j" :value="j">{{ opt }}</el-checkbox>
+        <el-checkbox v-for="(opt, j) in q.options" :key="j" :value="j"><MathText :text="opt" /></el-checkbox>
       </el-checkbox-group>
       <el-radio-group v-else-if="q.type === 'judge'" v-model="answers[q.id]" class="option-group">
         <el-radio :value="0">正确</el-radio>
@@ -32,6 +32,7 @@ import { ref, reactive, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessageBox } from 'element-plus'
 import { exams, questions as allQuestions } from '@/mock/data'
+import MathText from '@/components/MathText.vue'
 
 const route = useRoute()
 const exam = exams.find(e => e.id === Number(route.params.id)) || exams[0]
