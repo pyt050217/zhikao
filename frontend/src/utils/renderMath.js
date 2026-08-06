@@ -15,17 +15,28 @@ export function renderMath(text) {
   if (!/[\$\\]/.test(text)) return escapeHtml(text)
 
   try {
-    return renderSegments(text)
+    return renderSegments(normalizeMathDelimiters(text))
   } catch {
     return escapeHtml(text)
   }
 }
 
+/**
+ * 预处理：把包含换行的 $...$ 转为 $$...$$（显示模式），
+ * 避免多行矩阵在行内模式下布局错乱。
+ */
+function normalizeMathDelimiters(text) {
+  // 匹配 $...$（非 $$），若内容含换行则替换为 $$...$$
+  return text.replace(/\$([\s\S]+?)\$(?!\$)/g, (match, content) => {
+    if (/\n/.test(content)) return `$$${content}$$`
+    return match
+  })
+}
+
 // 将文本切分为 [公式, 文本, 公式, ...] 片段，交替类型
 function renderSegments(text) {
   // 匹配顺序：$$...$$  \[...\]  $...$  \(...\)
-  // 行内 $...$ 允许换行（支持多行矩阵），但排除 $$ 显示模式
-  const RE = /\$\$([\s\S]*?)\$\$|\\\[([\s\S]*?)\\\]|\$((?:[^\$]|\$(?!\$))+?)\$(?!\$)|\\\(([\s\S]*?)\\\)/g
+  const RE = /\$\$([\s\S]*?)\$\$|\\\[([\s\S]*?)\\\]|\$([^\$\n]+?)\$(?!\$)|\\\(([\s\S]*?)\\\)/g
   let lastIndex = 0
   const parts = []
   let match
@@ -36,10 +47,7 @@ function renderSegments(text) {
       parts.push(escapeHtml(text.slice(lastIndex, match.index)))
     }
     const math = match[1] ?? match[2] ?? match[3] ?? match[4]
-    // $$...$$ / \[...\] → 显示模式；$...$ / \(...\) → 行内模式
-    // 但行内公式若含换行（如多行矩阵）也自动切显示模式，避免布局错乱
-    let displayMode = !!match[1] || !!match[2]
-    if (!displayMode && /\n/.test(math)) displayMode = true
+    const displayMode = !!match[1] || !!match[2]
     try {
       parts.push(
         katex.renderToString(math.trim(), { displayMode, throwOnError: false })
