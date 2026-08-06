@@ -9,10 +9,9 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
 /**
  * 从 PDF 提取文字 + 公式区域裁图。
  *
- * 关键改进：连续的多行公式（如矩阵）会被合并为一张图片，
- * 让 OCR 一次看到完整结构，输出带 \\ 换行的正确 LaTeX。
- *
- * 公式位置用 __FORMULA_i__ 占位符替代，同时返回每块公式区域的 PNG (base64 data URL)。
+ * 核心思路：利用括号高度检测矩阵区域。
+ * 矩阵的 ( ) [ ] 括号会被拉伸到覆盖所有行，高度远大于普通文字（通常 > 20px）。
+ * 找到大括号后，收集括号之间的所有行，合并为一张图片送 OCR。
  *
  * 返回: { text: string, formulas: [{ page, image: "data:image/png;base64,..." }] }
  */
@@ -24,9 +23,8 @@ export async function parsePdf(file) {
 
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i)
-    const viewport = page.getViewport({ scale: 2 })  // 2x 保证清晰度
+    const viewport = page.getViewport({ scale: 2 })
 
-    // 整页渲染到 canvas（用于裁切公式区域）
     const full_canvas = document.createElement('canvas')
     full_canvas.width = Math.ceil(viewport.width)
     full_canvas.height = Math.ceil(viewport.height)
@@ -34,7 +32,8 @@ export async function parsePdf(file) {
     await page.render({ canvasContext: full_ctx, viewport }).promise
 
     const content = await page.getTextContent()
-    // 按 y 坐标分桶为行（pdfjs 的 item.transform[5] 是行基线 y）
+
+    // 按 y 坐标分桶为行
     const lines = {}
     content.items.forEach(item => {
       const key = Math.round(item.transform[5])
@@ -44,57 +43,106 @@ export async function parsePdf(file) {
 
     const sorted_keys = Object.keys(lines).map(Number).sort((a, b) => b - a)
 
-    // ── 第一步：标记哪些行是公式行 ──
-    const line_is_formula = {}
+    // ── 第一步：计算每行的平均行高 ──
+    const line_heights = {}
     for (const key of sorted_keys) {
-      line_is_formula[key] = _is_formula_line(lines[key])
+      const items = lines[key]
+      const heights = items.map(it => it.transform[3] || 10)
+      line_heights[key] = heights.reduce((a, b) => a + b, 0) / heights.length
     }
+    // 中位数行高（代表普通文字高度）
+    const sorted_heights = Object.values(line_heights).sort((a, b) => a - b)
+    const median_height = sorted_heights[Math.floor(sorted_heights.length / 2)] || 12
+    const TALL_THRESHOLD = median_height * 1.8  // 超过 1.8 倍行高视为"大括号"
 
-    // ── 第二步：合并连续的公式行为一个公式块 ──
-    // 相邻公式行（y 坐标接近）视为同一个公式（如矩阵的多行）
-    const formula_blocks = []  // [{ y_top, y_bottom, keys: [key1, key2, ...] }]
-    let current_block = null
-    const MERGE_THRESHOLD = 20  // y 坐标差距小于此行高则合并（约 20px ≈ 行间距）
-
+    // ── 第二步：找大括号位置 ──
+    // 大括号特征：字符为 ( ) [ ] { }，且高度 > TALL_THRESHOLD
+    const tall_brackets = []  // [{ char, x, y_top, y_bottom, line_key }]
     for (const key of sorted_keys) {
-      if (!line_is_formula[key]) {
-        current_block = null
-        continue
-      }
-      if (current_block && Math.abs(key - current_block.keys[current_block.keys.length - 1]) < MERGE_THRESHOLD) {
-        // 与上一个公式行连续 → 并入同一块
-        current_block.keys.push(key)
-        current_block.y_bottom = Math.max(current_block.y_bottom, key)
-        current_block.y_top = Math.min(current_block.y_top, key)
-      } else {
-        // 新公式块
-        current_block = { y_top: key, y_bottom: key, keys: [key] }
-        formula_blocks.push(current_block)
-      }
-    }
-
-    // ── 第三步：按行输出文本，公式块整体替换为占位符 ──
-    const page_text_parts = []
-    const processed_formula_keys = new Set()
-
-    for (const key of sorted_keys) {
-      // 检查此行是否属于某个公式块
-      const block = formula_blocks.find(b => b.keys.includes(key))
-      if (block) {
-        // 只处理一次：在公式块的第一行（y 最大即最上方）输出占位符
-        const block_top_key = Math.max(...block.keys)
-        if (key === block_top_key && !processed_formula_keys.has(block_top_key)) {
-          const idx = formulas.length
-          page_text_parts.push(`__FORMULA_${idx}__`)
-          const img = _crop_formula_block(full_canvas, lines, block, viewport.scale)
-          if (img) formulas.push({ page: i, image: img })
-          processed_formula_keys.add(block_top_key)
+      for (const it of lines[key]) {
+        const h = it.transform[3] || 10
+        const ch = it.str || ''
+        if (h > TALL_THRESHOLD && /^[()[\]{}]$/.test(ch.trim())) {
+          tall_brackets.push({
+            char: ch.trim(),
+            x: it.transform[4],
+            y_top: key + h / 2,
+            y_bottom: key - h / 2,
+            line_key: key,
+            height: h
+          })
         }
-        // 跳过公式块内的其他行（已合并处理）
+      }
+    }
+
+    // ── 第三步：匹配左右括号，确定矩阵行范围 ──
+    const matrix_ranges = []  // [{ y_top, y_bottom, rows: [key1, key2, ...] }]
+    const pairs = { '(': ')', '[': ']', '{': '}' }
+
+    for (let b = 0; b < tall_brackets.length; b++) {
+      const left = tall_brackets[b]
+      if (!pairs[left.char]) continue  // 只处理左括号
+
+      // 找同区域（x 接近）的右括号
+      const right = tall_brackets.find(tb =>
+        tb.char === pairs[left.char] &&
+        Math.abs(tb.x - left.x) > 5 &&  // 在右方
+        Math.abs(tb.x - left.x) < 500 && // 不会太远
+        tb.y_top <= left.y_top + 5 &&   // y 范围重叠
+        tb.y_bottom >= left.y_bottom - 5
+      )
+
+      if (right) {
+        // 收集左右括号 y 范围内的所有行
+        const y_min = Math.min(left.y_bottom, right.y_bottom) - 5
+        const y_max = Math.max(left.y_top, right.y_top) + 5
+        const matrix_rows = sorted_keys.filter(k => k >= y_min && k <= y_max)
+        if (matrix_rows.length >= 2) {
+          matrix_ranges.push({
+            y_top: y_max,
+            y_bottom: y_min,
+            rows: matrix_rows.sort((a, b) => b - a)
+          })
+        }
+      }
+    }
+
+    // ── 第四步：输出文本，矩阵区域替换为占位符 ──
+    const matrix_row_set = new Set()
+    for (const range of matrix_ranges) {
+      for (const k of range.rows) matrix_row_set.add(k)
+    }
+
+    const page_text_parts = []
+    let j = 0
+    while (j < sorted_keys.length) {
+      const key = sorted_keys[j]
+
+      // 检查是否进入矩阵区域
+      const matrix = matrix_ranges.find(r => r.rows.includes(key))
+      if (matrix) {
+        const idx = formulas.length
+        page_text_parts.push(`__FORMULA_${idx}__`)
+        const img = _crop_formula_block(full_canvas, lines, matrix.rows, viewport.scale)
+        if (img) formulas.push({ page: i, image: img })
+        // 跳过矩阵所有行
+        for (const k of matrix.rows) {
+          const idx_to_skip = sorted_keys.indexOf(k)
+          if (idx_to_skip >= j) j = idx_to_skip + 1
+        }
         continue
       }
-      // 普通文本行
-      page_text_parts.push(lines[key].map(it => it.str).join(''))
+
+      // 普通行：检查是否为公式
+      if (_is_formula_line(lines[key])) {
+        const idx = formulas.length
+        page_text_parts.push(`__FORMULA_${idx}__`)
+        const img = _crop_formula_block(full_canvas, lines, [key], viewport.scale)
+        if (img) formulas.push({ page: i, image: img })
+      } else {
+        page_text_parts.push(lines[key].map(it => it.str).join(''))
+      }
+      j++
     }
 
     pages_text.push(page_text_parts.join('\n'))
@@ -113,16 +161,15 @@ function _is_formula_line(items) {
     const has_math_char = /[∑∏∫∂√∞≈≠≤≥±×÷∈∉⊂⊃∪∩α-ωΑ-Ω→←↑↓↔⇌ℓ∂∇]/.test(text)
     if (is_math_font || has_math_char) math_spans++
   }
-  return math_spans > 0 && math_spans >= items.length * 0.4
+  return math_spans > 0 && math_spans >= items.length * 0.3
 }
 
 /**
- * 裁切整个公式块（可能包含多行，如矩阵）。
- * 合并块内所有行的 bbox 范围，一次性裁出完整公式图片。
+ * 裁切一组行为一张图片。
  */
-function _crop_formula_block(full_canvas, lines, block, scale) {
+function _crop_formula_block(full_canvas, lines, keys, scale) {
   let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity
-  for (const key of block.keys) {
+  for (const key of keys) {
     for (const it of lines[key]) {
       const w = it.transform[0] || 6
       const h = it.transform[3] || 10
@@ -136,8 +183,7 @@ function _crop_formula_block(full_canvas, lines, block, scale) {
   }
   if (!isFinite(x0) || x1 - x0 < 3 || y1 - y0 < 3) return null
 
-  const margin = 6
-  // PDF 坐标 → canvas 像素（注意 y 轴翻转：PDF 原点在左下，canvas 在左上）
+  const margin = 8
   const sx = Math.max(0, (x0 - margin) * scale)
   const sy = Math.max(0, full_canvas.height - (y1 + margin) * scale)
   const sw = Math.min(full_canvas.width - sx, (x1 - x0 + margin * 2) * scale)
