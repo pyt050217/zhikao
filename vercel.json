@@ -7,8 +7,7 @@
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "functions": {
-    "api/ocr_pix2tex.py": {
-      "memory": 1024,
+    "api/**/*.py": {
       "maxDuration": 60
     }
   }
