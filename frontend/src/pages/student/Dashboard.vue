@@ -4,9 +4,10 @@
     <el-table :data="exams" stripe>
       <el-table-column prop="title" label="考试名称" />
       <el-table-column prop="duration" label="时长(分钟)" width="100" />
-      <el-table-column label="操作" width="200">
+      <el-table-column label="操作" width="280">
         <template #default="{ row }">
-          <el-button type="primary" size="small" @click="$router.push(`/student/exam/${row.id}`)">开始答题</el-button>
+          <el-button type="primary" size="small" @click="$router.push(`/student/exam/${row.id}`)">在线答题</el-button>
+          <el-button size="small" @click="$router.push(`/student/exam/${row.id}/upload`)">📷 拍照上传</el-button>
         </template>
       </el-table-column>
     </el-table>

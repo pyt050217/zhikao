@@ -30,6 +30,7 @@ const routes = [
     children: [
       { path: 'dashboard', name: 'StudentDashboard', component: () => import('@/pages/student/Dashboard.vue') },
       { path: 'exam/:id', name: 'ExamAnswer', component: () => import('@/pages/student/ExamAnswer.vue') },
+      { path: 'exam/:id/upload', name: 'ExamUpload', component: () => import('@/pages/student/ExamUpload.vue') },
       { path: 'result/:examId', name: 'ExamResult', component: () => import('@/pages/student/ExamResult.vue') }
     ]
   }
