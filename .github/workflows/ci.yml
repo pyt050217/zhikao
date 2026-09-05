@@ -5,6 +5,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4 # 补上拉取代码
       - run: pip install -r requirements.txt
       - run: pytset -q
 
