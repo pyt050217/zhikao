@@ -5,9 +5,9 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 # 补上拉取代码
+      - uses: actions/checkout@v4
       - run: pip install -r requirements.txt
-      - run: pytest -q #修改拼写错误
+      - run: pytest -q
 
   deploy:
     runs-on: ubuntu-latest
