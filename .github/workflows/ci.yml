@@ -7,7 +7,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4 # 补上拉取代码
       - run: pip install -r requirements.txt
-      - run: pytset -q
+      - run: pytest -q #修改拼写错误
 
   deploy:
     runs-on: ubuntu-lastest
