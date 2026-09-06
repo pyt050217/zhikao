@@ -7,4 +7,3 @@ jobs:
     steps:
       - name: dummy test
         run: echo "just for status check demo"
-        run: this‑command‑does‑not‑exist
